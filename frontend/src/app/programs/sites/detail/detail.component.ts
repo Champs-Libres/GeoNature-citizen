@@ -63,7 +63,7 @@ export class SiteDetailComponent
                 MainConfig.API_ENDPOINT + this.photos[i]['url'];
         });
         // data
-        this.attributes = []
+        this.attributes = [];
         if (this.site.properties.visits) {
             this.site.properties.visits.forEach((e) => {
                 const data = e.json_data;
@@ -71,7 +71,7 @@ export class SiteDetailComponent
                     date: e.date,
                     author: e.author,
                     id: e.id_visit,
-                    json_data: e.json_data
+                    json_data: e.json_data,
                 };
                 this.loadJsonSchema().subscribe((jsonschema: any) => {
                     const schema = jsonschema.schema.properties;
@@ -87,6 +87,7 @@ export class SiteDetailComponent
                         visitData['data'] = custom_data;
                     }
                 });
+                visitData['photos'] = this.getPhotosForVisit(e.id_visit);
                 this.attributes.push(visitData);
             });
         }
@@ -94,6 +95,16 @@ export class SiteDetailComponent
 
     getData() {
         return this.programService.getSiteDetails(this.site_id);
+    }
+
+    getPhotosForVisit(visit_id) {
+        const photos = [];
+        this.site.properties.photos.forEach((p) => {
+            if (p.visit_id === visit_id) {
+                photos.push(p);
+            }
+        });
+        return photos;
     }
 
     updateData() {
@@ -104,79 +115,79 @@ export class SiteDetailComponent
     }
 
     ngAfterViewInit() {
-        this.programService.getSiteDetails(this.site_id).subscribe((sites) => {
+        this.getData().subscribe((sites) => {
             this.site = sites['features'][0];
-            this.photos = this.site.properties.photos;
-            this.photos.forEach((e, i) => {
-                this.photos[i]['url'] =
-                    MainConfig.API_ENDPOINT + this.photos[i]['url'];
-            });
-
-            // setup map
-            const map = L.map('map');
-            L.tileLayer('//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: 'OpenStreetMap',
-            }).addTo(map);
-
-            let coord: number[];
-            let latLng: L.LatLng;
-            const geometryType = this.site.properties.program.geometry_type;
-
-            switch (geometryType) {
-                case 'POINT':
-                default:
-                    coord = this.site.geometry.coordinates;
-                    latLng = L.latLng(coord[1], coord[0]);
-                    L.marker(latLng, { icon: markerIcon }).addTo(map);
-                    break;
-
-                case 'LINESTRING':
-                    coord = this.site.geometry.coordinates[0];
-                    latLng = L.latLng(coord[1], coord[0]);
-                    const lineLatLng = this.site.geometry.coordinates.map(
-                        (c: number[]) => [c[1], c[0]]
-                    );
-                    L.polyline(lineLatLng, {
-                        color: '#11aa9e',
-                    }).addTo(map);
-                    break;
-
-                case 'POLYGON':
-                    coord = this.site.geometry.coordinates[0][0];
-                    latLng = L.latLng(coord[1], coord[0]);
-                    const polygonLatLng = [this.site.geometry.coordinates[0].map(
-                        (c: number[]) => [c[1], c[0]]
-                    )] as L.LatLng[][];
-                    L.polygon(polygonLatLng, {
-                        color: '#11aa9e',
-                    }).addTo(map);
-                    break;
-            }
-            map.setView(latLng, 13);
-
-            // prepare data
-            if (this.site.properties.visits) {
-                this.site.properties.visits.forEach((e) => {
-                    const data = e.json_data;
-                    const visitData = { date: e.date, author: e.author };
-                    this.loadJsonSchema().subscribe((jsonschema: any) => {
-                        const schema = jsonschema.schema.properties;
-                        const custom_data = [];
-                        for (const k in data) {
-                            const v = data[k];
-                            custom_data.push({
-                                name: schema[k].title,
-                                value: v.toString(),
-                            });
-                        }
-                        if (custom_data.length > 0) {
-                            visitData['data'] = custom_data;
-                        }
-                    });
-                    this.attributes.push(visitData);
-                });
-            }
+            this.prepareSiteData();
+            this.prepareVisits();
         });
+    }
+
+    prepareSiteData() {
+
+        // setup map
+        const map = L.map('map');
+        L.tileLayer('//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'OpenStreetMap',
+        }).addTo(map);
+
+        let coord: number[];
+        let latLng: L.LatLng;
+        const geometryType = this.site.properties.program.geometry_type;
+
+        switch (geometryType) {
+            case 'POINT':
+            default:
+                coord = this.site.geometry.coordinates;
+                latLng = L.latLng(coord[1], coord[0]);
+                L.marker(latLng, { icon: markerIcon }).addTo(map);
+                break;
+
+            case 'LINESTRING':
+                coord = this.site.geometry.coordinates[0];
+                latLng = L.latLng(coord[1], coord[0]);
+                const lineLatLng = this.site.geometry.coordinates.map(
+                    (c: number[]) => [c[1], c[0]]
+                );
+                L.polyline(lineLatLng, {
+                    color: '#11aa9e',
+                }).addTo(map);
+                break;
+
+            case 'POLYGON':
+                coord = this.site.geometry.coordinates[0][0];
+                latLng = L.latLng(coord[1], coord[0]);
+                const polygonLatLng = [this.site.geometry.coordinates[0].map(
+                    (c: number[]) => [c[1], c[0]]
+                )] as L.LatLng[][];
+                L.polygon(polygonLatLng, {
+                    color: '#11aa9e',
+                }).addTo(map);
+                break;
+        }
+        map.setView(latLng, 13);
+
+        // // prepare data
+        // if (this.site.properties.visits) {
+        //     this.site.properties.visits.forEach((e) => {
+        //         const data = e.json_data;
+        //         const visitData = { date: e.date, author: e.author };
+        //         this.loadJsonSchema().subscribe((jsonschema: any) => {
+        //             const schema = jsonschema.schema.properties;
+        //             const custom_data = [];
+        //             for (const k in data) {
+        //                 const v = data[k];
+        //                 custom_data.push({
+        //                     name: schema[k].title,
+        //                     value: v.toString(),
+        //                 });
+        //             }
+        //             if (custom_data.length > 0) {
+        //                 visitData['data'] = custom_data;
+        //             }
+        //         });
+        //         this.attributes.push(visitData);
+        //     });
+        // }
     }
 
     loadJsonSchema() {

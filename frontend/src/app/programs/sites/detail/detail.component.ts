@@ -93,6 +93,24 @@ export class SiteDetailComponent
         }
     }
 
+    prepareMergedVisits() {
+        const custom_data = [];
+        if (this.site.properties.merged_visits) {
+            const data = this.site.properties.merged_visits;
+            this.loadJsonSchema().subscribe((jsonschema: any) => {
+                const schema = jsonschema.schema.properties;
+                for (const k in data) {
+                    const v = data[k];
+                    custom_data.push({
+                        name: schema[k].title,
+                        value: v.toString(),
+                    });
+                }
+            });
+            this.merged_visits = custom_data;
+        }
+    }
+
     getData() {
         return this.programService.getSiteDetails(this.site_id);
     }
@@ -119,11 +137,11 @@ export class SiteDetailComponent
             this.site = sites['features'][0];
             this.prepareSiteData();
             this.prepareVisits();
+            this.prepareMergedVisits();
         });
     }
 
     prepareSiteData() {
-
         // setup map
         const map = L.map('map');
         L.tileLayer('//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -165,29 +183,6 @@ export class SiteDetailComponent
                 break;
         }
         map.setView(latLng, 13);
-
-        // // prepare data
-        // if (this.site.properties.visits) {
-        //     this.site.properties.visits.forEach((e) => {
-        //         const data = e.json_data;
-        //         const visitData = { date: e.date, author: e.author };
-        //         this.loadJsonSchema().subscribe((jsonschema: any) => {
-        //             const schema = jsonschema.schema.properties;
-        //             const custom_data = [];
-        //             for (const k in data) {
-        //                 const v = data[k];
-        //                 custom_data.push({
-        //                     name: schema[k].title,
-        //                     value: v.toString(),
-        //                 });
-        //             }
-        //             if (custom_data.length > 0) {
-        //                 visitData['data'] = custom_data;
-        //             }
-        //         });
-        //         this.attributes.push(visitData);
-        //     });
-        // }
     }
 
     loadJsonSchema() {

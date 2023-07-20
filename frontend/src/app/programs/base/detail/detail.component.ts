@@ -12,6 +12,7 @@ export abstract class BaseDetailComponent {
     readonly URL = MainConfig.API_ENDPOINT;
     program_id: any;
     attributes = [];
+    merged_visits = null;
     photos = [];
     clickedPhoto: any;
     module: string;

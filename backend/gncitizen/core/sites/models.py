@@ -15,6 +15,7 @@ from gncitizen.core.commons.models import (
 )
 from gncitizen.core.observations.models import ObservationModel
 from gncitizen.core.users.models import ObserverMixinModel
+from gncitizen.core.users.models import UserModel
 from gncitizen.utils.env import ROOT_DIR
 from server import db
 
@@ -68,6 +69,10 @@ class SiteModel(TimestampMixinModel, ObserverMixinModel, db.Model):
     def __repr__(self):
         return "<Site {0} - {1}>".format(self.id_site, self.name)
 
+    @property
+    def eval(self):
+        return UserModel.query.get(self.id_role).eval
+
 
 @serializable
 class CorProgramSiteTypeModel(TimestampMixinModel, db.Model):
@@ -100,6 +105,10 @@ class VisitModel(TimestampMixinModel, ObserverMixinModel, db.Model):
     site = relationship("SiteModel")
     date = db.Column(db.Date)
     json_data = db.Column(JSONB, nullable=True)
+
+    @property
+    def eval(self):
+        return UserModel.query.get(self.id_role).eval
 
     def __repr__(self):
         return "<Visit {0}>".format(self.id_visit)

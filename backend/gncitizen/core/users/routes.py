@@ -197,6 +197,18 @@ def registration():
         except Exception as e:
             return {"message mail failed": str(e)}, 500
 
+        # notify admins
+        try:
+            admin_users = UserModel.query.filter(UserModel.admin == True)
+            for a in admin_users:
+                send_user_email(
+                    'Nouvel utilisateur Biommap',
+                    a.email,
+                    html_message=current_app.config["MAIL"]["ADMIN_MESSAGE"].format(newuser_username=newuser.username),
+                )
+        except Exception as e:
+            return {"message to admins failed": str(e)}, 500
+
         # send confirm mail
         return (
             {

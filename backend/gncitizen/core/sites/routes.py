@@ -73,10 +73,12 @@ def get_site(pk):
     try:
         site = SiteModel.query.get(pk)
         formatted_site = format_site(site)
+        merged_visits = get_merged_site_visits(pk)
         photos = get_site_photos(pk)
         visits = get_site_visits(pk)
         formatted_site["properties"]["photos"] = photos
         formatted_site["properties"]["visits"] = visits
+        formatted_site["properties"]["merged_visits"] = merged_visits
         return {"features": [formatted_site]}, 200
     except Exception as e:
         return {"error_message": str(e)}, 400

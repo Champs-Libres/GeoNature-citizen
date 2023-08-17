@@ -29,6 +29,7 @@ from gncitizen.core.sites.models import (
 )
 from gncitizen.core.users.models import UserModel
 from gncitizen.utils.env import MEDIA_DIR, admin
+from gncitizen.utils.import_geojson import import_geojson
 from server import db
 
 from .models import (

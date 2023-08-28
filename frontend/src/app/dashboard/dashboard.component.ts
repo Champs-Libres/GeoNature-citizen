@@ -8,7 +8,7 @@ import { FeatureCollection, Geometry, Feature, Polygon, Position } from 'geojson
 import { Program } from '../programs/programs.models';
 import { dashboardData, dashboardDataType } from '../../conf/dashboard.config';
 import { conf } from '../programs/base/map/map.component';
-import { MAP_CONFIG } from '../../conf/map.config';
+import Plotly from "plotly.js";
 
 interface ExtraFeatureCollection extends FeatureCollection {
     [key: string]: any
@@ -65,73 +65,174 @@ export class DashboardComponent implements AfterViewInit {
             }
 
             for (let p of this.programs) {
-                console.log('p', p)
-                this.programService.getProgram(p.id_program).subscribe((program) => {
-                    if (p.geometry_type === 'point' && p.id_project === 1) {
-                        this.programPoint = program;
-                        console.log('this.programPoint:', this.programPoint);
+                console.log('p', p);
+                this.programService
+                    .getProgram(p.id_program)
+                    .subscribe((program) => {
+                        if (p.geometry_type === 'point' && p.id_project === 1) {
+                            this.programPoint = program;
+                            console.log(
+                                'this.programPoint:',
+                                this.programPoint
+                            );
 
-                        if (this.programPoint) {
-                            this.addProgramLayer(this.programPoint);
+                            if (this.programPoint) {
+                                this.addProgramLayer(this.programPoint);
+                            }
+
+                            this.programService
+                                .getProgramSites(p.id_program)
+                                .subscribe((site) => {
+                                    const countImport = site.features.filter(
+                                        (f) =>
+                                            f.properties.obs_txt === 'import' ||
+                                            f.properties.obs_txt ===
+                                                'géoportail wallon'
+                                    ).length;
+
+                                    this.sitePoint = site;
+                                    Object.assign(this.sitePoint, {
+                                        countImport: countImport,
+                                        especesTable: this.countVisitsDataByKey(
+                                            'espece',
+                                            this.sitePoint
+                                        ),
+                                    });
+                                    console.log(
+                                        'this.sitePoint:',
+                                        this.sitePoint
+                                    );
+
+                                    this.addLayerToMap(this.sitePoint);
+
+                                    this.makePieChart(this.sitePoint, 'espece');
+                                });
                         }
 
-                        this.programService.getProgramSites(p.id_program).subscribe((site) => {
+                        if (
+                            p.geometry_type === 'linestring' &&
+                            p.id_project === 1
+                        ) {
+                            this.programLine = program;
+                            console.log('this.programLine:', this.programLine);
 
-                            const countImport = site.features.filter(
-                                (f) => f.properties.obs_txt === 'import' || f.properties.obs_txt === 'géoportail wallon'
-                            ).length;
+                            this.programService
+                                .getProgramSites(p.id_program)
+                                .subscribe((site) => {
+                                    this.siteLine = site;
+                                    Object.assign(this.siteLine, {
+                                        countImport: this.countImport(
+                                            this.siteLine
+                                        ),
+                                        sumLineLength: this.computeTotalLength(
+                                            this.siteLine
+                                        ),
+                                        especesTable: this.countVisitsDataByKey(
+                                            'espece',
+                                            this.siteLine
+                                        ),
+                                    });
 
-                            this.sitePoint = site;
-                            Object.assign(this.sitePoint, {
-                                countImport: countImport,
-                                especesTable: this.countVisitsDataByKey('espece', this.sitePoint)
-                            });
-                            console.log('this.sitePoint:', this.sitePoint);
+                                    console.log(
+                                        'this.siteLines:',
+                                        this.siteLine
+                                    );
 
-                            this.addLayerToMap(this.sitePoint);
-                        });
-                    }
+                                    this.addLayerToMap(this.siteLine);
+                                });
+                        }
 
-                    if (p.geometry_type === 'linestring' && p.id_project === 1) {
-                        this.programLine = program;
-                        console.log('this.programLine:', this.programLine);
+                        if (
+                            p.geometry_type === 'polygon' &&
+                            p.id_project === 1
+                        ) {
+                            this.programPolygon = program;
+                            console.log(
+                                'this.programZones:',
+                                this.programPolygon
+                            );
 
-                        this.programService.getProgramSites(p.id_program).subscribe((site) => {
+                            this.programService
+                                .getProgramSites(p.id_program)
+                                .subscribe((site) => {
+                                    this.sitePolygon = site;
+                                    console.log(
+                                        'this.sitePolygon:',
+                                        this.sitePolygon
+                                    );
+                                    Object.assign(this.sitePolygon, {
+                                        countImport: this.countImport(
+                                            this.sitePolygon
+                                        ),
+                                        sumArea: this.computeTotalArea(
+                                            this.sitePolygon
+                                        ),
+                                    });
 
-                            this.siteLine = site;
-                            Object.assign(this.siteLine, {
-                                countImport: this.countImport(this.siteLine),
-                                sumLineLength: this.computeTotalLength(this.siteLine),
-                                especesTable: this.countVisitsDataByKey('espece', this.siteLine)
-                            });
-
-                            console.log('this.siteLines:', this.siteLine);
-
-                            this.addLayerToMap(this.siteLine);
-                        });
-                    }
-
-                    if (p.geometry_type === 'polygon' && p.id_project === 1) {
-                        this.programPolygon = program;
-                        console.log('this.programZones:', this.programPolygon);
-
-                        this.programService.getProgramSites(p.id_program).subscribe((site) => {
-                            this.sitePolygon = site;
-                            console.log('this.sitePolygon:', this.sitePolygon);
-                            Object.assign(this.sitePolygon, {
-                                countImport: this.countImport(this.sitePolygon),
-                                sumArea: this.computeTotalArea(this.sitePolygon),
-                            });
-
-                            this.addLayerToMap(this.sitePolygon);
-                        });
-                    }
-                });
+                                    this.addLayerToMap(this.sitePolygon);
+                                });
+                        }
+                    });
             }
-
         });
     }
 
+    makePieChart(features: FeatureCollection, key: string): void {
+        console.log(features);
+        console.log(key);
+
+        const CONSO_VAL = [
+            72.41, 21.06, 18.34, 17.2, 15.77, 8.22, 8.16, 7.16, 6.07, 7.6,
+        ];
+
+        const CONSO_LABELS = [
+            'reste',
+            'CongÃ©lateur',
+            'Pompe Ã  eau',
+            'Lave-vaiselle',
+            'VMC',
+            'Modem internet',
+            'Machine Ã  pain',
+            'Frigo',
+            'Laptop + Ã©cran',
+            'Lave-linge',
+        ];
+
+        const COLORS = [
+            '#acacac',
+            '#001e50',
+            '#003366',
+            '#006699',
+            '#0099cd',
+            '#94ab84',
+            '#e4dfaf',
+            '#e6ca94',
+            '#cdab83',
+            '#b59880',
+            '#9b7b62',
+        ]; // from the columbia palette in QGIS
+
+        const data = [
+            {
+                values: CONSO_VAL, // features.especesTable.map(e => e.count)
+                labels: CONSO_LABELS, // features.especesTable.map(e => e.name)
+                marker: {
+                    colors: COLORS,
+                },
+                type: 'pie',
+            },
+        ];
+
+        const layout = {
+            height: 400,
+            width: 700,
+            title: {
+                text: 'Consommation mensuelle'
+            },
+        };
+
+        Plotly.newPlot('pieChart', data, layout);
+    }
 
     countImport(featureCollection: FeatureCollection): number {
         return featureCollection.features.filter(

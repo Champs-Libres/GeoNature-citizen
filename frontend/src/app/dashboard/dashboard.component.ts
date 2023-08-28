@@ -8,7 +8,7 @@ import { FeatureCollection, Geometry, Feature, Polygon, Position } from 'geojson
 import { Program } from '../programs/programs.models';
 import { dashboardData, dashboardDataType } from '../../conf/dashboard.config';
 import { conf } from '../programs/base/map/map.component';
-import Plotly from "plotly.js";
+import Plotly from "plotly.js/dist/plotly";
 
 interface ExtraFeatureCollection extends FeatureCollection {
     [key: string]: any
@@ -46,10 +46,9 @@ export class DashboardComponent implements AfterViewInit {
         private router: Router,
         private titleService: Title,
         private programService: GncProgramsService
-    ) { }
+    ) {}
 
     ngAfterViewInit(): void {
-
         this.dashboardData = dashboardData;
 
         this.titleService.setTitle(`${AppConfig.appName} - tableau de bord`);
@@ -105,7 +104,17 @@ export class DashboardComponent implements AfterViewInit {
 
                                     this.addLayerToMap(this.sitePoint);
 
-                                    this.makePieChart(this.sitePoint, 'espece');
+                                    this.makePieChart(
+                                        this.sitePoint,
+                                        'espece',
+                                        'Distribution des espèces'
+                                    );
+
+                                    this.makeHistogram(
+                                        this.sitePoint,
+                                        'hauteur',
+                                        `Distribution des hauteurs d'arbres`
+                                    );
                                 });
                         }
 
@@ -177,29 +186,12 @@ export class DashboardComponent implements AfterViewInit {
         });
     }
 
-    makePieChart(features: FeatureCollection, key: string): void {
-        console.log(features);
-        console.log(key);
-
-        const CONSO_VAL = [
-            72.41, 21.06, 18.34, 17.2, 15.77, 8.22, 8.16, 7.16, 6.07, 7.6,
-        ];
-
-        const CONSO_LABELS = [
-            'reste',
-            'CongÃ©lateur',
-            'Pompe Ã  eau',
-            'Lave-vaiselle',
-            'VMC',
-            'Modem internet',
-            'Machine Ã  pain',
-            'Frigo',
-            'Laptop + Ã©cran',
-            'Lave-linge',
-        ];
-
+    makePieChart(
+        features: FeatureCollection,
+        key: string,
+        title: string
+    ): void {
         const COLORS = [
-            '#acacac',
             '#001e50',
             '#003366',
             '#006699',
@@ -214,8 +206,12 @@ export class DashboardComponent implements AfterViewInit {
 
         const data = [
             {
-                values: CONSO_VAL, // features.especesTable.map(e => e.count)
-                labels: CONSO_LABELS, // features.especesTable.map(e => e.name)
+                values: this.countVisitsDataByKey(key, features).map(
+                    (e) => e.count
+                ),
+                labels: this.countVisitsDataByKey(key, features).map(
+                    (e) => e.name
+                ),
                 marker: {
                     colors: COLORS,
                 },
@@ -225,18 +221,41 @@ export class DashboardComponent implements AfterViewInit {
 
         const layout = {
             height: 400,
-            width: 700,
-            title: {
-                text: 'Consommation mensuelle'
-            },
+            width: 400,
+            title: { text: title },
         };
 
         Plotly.newPlot('pieChart', data, layout);
     }
 
+    makeHistogram(
+        features: FeatureCollection,
+        key: string,
+        title: string
+    ): void {
+        const data = [
+            {
+                x: features.features.map(
+                    (f) => f.properties.merged_visits[key]
+                ),
+                type: 'histogram',
+            },
+        ];
+
+        const layout = {
+            height: 400,
+            width: 400,
+            title: { text: title },
+        };
+
+        Plotly.newPlot('histogram', data, layout);
+    }
+
     countImport(featureCollection: FeatureCollection): number {
         return featureCollection.features.filter(
-            (f) => f.properties.obs_txt === 'import' || f.properties.obs_txt === 'géoportail wallon'
+            (f) =>
+                f.properties.obs_txt === 'import' ||
+                f.properties.obs_txt === 'géoportail wallon'
         ).length;
     }
 
@@ -261,21 +280,30 @@ export class DashboardComponent implements AfterViewInit {
          */
 
         const ringArea = (coords): number => {
-            let p1, p2, p3, lowerIndex, middleIndex, upperIndex, i,
-            area = 0,
-            coordsLength = coords.length;
+            let p1,
+                p2,
+                p3,
+                lowerIndex,
+                middleIndex,
+                upperIndex,
+                i,
+                area = 0,
+                coordsLength = coords.length;
 
             if (coordsLength > 2) {
                 for (i = 0; i < coordsLength; i++) {
-                    if (i === coordsLength - 2) {// i = N-2
+                    if (i === coordsLength - 2) {
+                        // i = N-2
                         lowerIndex = coordsLength - 2;
                         middleIndex = coordsLength - 1;
                         upperIndex = 0;
-                    } else if (i === coordsLength - 1) {// i = N-1
+                    } else if (i === coordsLength - 1) {
+                        // i = N-1
                         lowerIndex = coordsLength - 1;
                         middleIndex = 0;
                         upperIndex = 1;
-                    } else { // i = 0 to N-3
+                    } else {
+                        // i = 0 to N-3
                         lowerIndex = i;
                         middleIndex = i + 1;
                         upperIndex = i + 2;
@@ -286,14 +314,14 @@ export class DashboardComponent implements AfterViewInit {
                     area += (rad(p3[0]) - rad(p1[0])) * Math.sin(rad(p2[1]));
                 }
 
-                area = area * RADIUS * RADIUS / 2;
+                area = (area * RADIUS * RADIUS) / 2;
             }
 
             return area;
         };
 
         const rad = (_): number => {
-            return _ * Math.PI / 180;
+            return (_ * Math.PI) / 180;
         };
 
         const polygonArea = (coords): number => {
@@ -344,7 +372,8 @@ export class DashboardComponent implements AfterViewInit {
             if (lineString.coordinates.length > 2) {
                 for (let i = 1; i < lineString.coordinates.length; i++) {
                     length =
-                        length + this.distance(
+                        length +
+                        this.distance(
                             lineString.coordinates[i - 1][0],
                             lineString.coordinates[i - 1][1],
                             lineString.coordinates[i][0],
@@ -364,9 +393,9 @@ export class DashboardComponent implements AfterViewInit {
      */
     distance(λ1: number, φ1: number, λ2: number, φ2: number): number {
         const R = 6371000;
-        const Δλ = (λ2 - λ1) * Math.PI / 180;
-        φ1 = φ1 * Math.PI / 180;
-        φ2 = φ2 * Math.PI / 180;
+        const Δλ = ((λ2 - λ1) * Math.PI) / 180;
+        φ1 = (φ1 * Math.PI) / 180;
+        φ2 = (φ2 * Math.PI) / 180;
         const x = Δλ * Math.cos((φ1 + φ2) / 2);
         const y = φ2 - φ1;
         const d = Math.sqrt(x * x + y * y);
@@ -377,8 +406,14 @@ export class DashboardComponent implements AfterViewInit {
         const visitsData: any[] = [];
         program.features.forEach((f) => {
             if (f.properties.hasOwnProperty('visits')) {
-                if (f.properties.visits[f.properties.visits.length - 1].json_data.hasOwnProperty(key)) {
-                    const data = f.properties.visits[f.properties.visits.length - 1].json_data[key];
+                if (
+                    f.properties.visits[
+                        f.properties.visits.length - 1
+                    ].json_data.hasOwnProperty(key)
+                ) {
+                    const data =
+                        f.properties.visits[f.properties.visits.length - 1]
+                            .json_data[key];
                     visitsData.push(data);
                 }
             }
@@ -386,7 +421,10 @@ export class DashboardComponent implements AfterViewInit {
         return visitsData;
     } //TODO count in another function the number of especes and send back an object with [{name: 'truc', count: 2} , {name: 'troc', count: 3} ]
 
-    countVisitsDataByKey(key: string, program: FeatureCollection): CountByKey[] {
+    countVisitsDataByKey(
+        key: string,
+        program: FeatureCollection
+    ): CountByKey[] {
         const data = this.getVisitsDataByKey(key, program);
         const uniqueData = data.filter((v, i, a) => a.indexOf(v) === i);
         const results = [];
@@ -403,7 +441,6 @@ export class DashboardComponent implements AfterViewInit {
     }
 
     initMap(options: any, LeafletOptions: any = {}): void {
-
         this.options = options;
 
         this.dashboardMap = L.map('dashboardMap', {
@@ -453,7 +490,8 @@ export class DashboardComponent implements AfterViewInit {
                     pointToLayer: (f: Feature, latlng): L.Marker => {
                         const marker: L.Marker<any> = L.marker(latlng, {
                             icon:
-                                f.properties.obs_txt === 'import' || f.properties.obs_txt === 'géoportail wallon'
+                                f.properties.obs_txt === 'import' ||
+                                f.properties.obs_txt === 'géoportail wallon'
                                     ? conf.ORANGE_MARKER_ICON()
                                     : conf.OBS_MARKER_ICON(),
                         });
@@ -468,9 +506,10 @@ export class DashboardComponent implements AfterViewInit {
             case 'LINESTRING':
                 Object.assign(layerOptions, {
                     style: (f: Feature) =>
-                        f.properties.obs_txt === 'import' || f.properties.obs_txt === 'géoportail wallon'
+                        f.properties.obs_txt === 'import' ||
+                        f.properties.obs_txt === 'géoportail wallon'
                             ? { color: '#ff6600' }
-                            : { color: '#11aa9e' }
+                            : { color: '#11aa9e' },
                 });
                 this.layerLine = L.geoJSON(features, layerOptions);
                 this.dashboardMap.addLayer(this.layerLine);
@@ -480,9 +519,10 @@ export class DashboardComponent implements AfterViewInit {
             case 'POLYGON':
                 Object.assign(layerOptions, {
                     style: (f: Feature) =>
-                        f.properties.obs_txt === 'import' || f.properties.obs_txt === 'géoportail wallon'
+                        f.properties.obs_txt === 'import' ||
+                        f.properties.obs_txt === 'géoportail wallon'
                             ? { color: '#ff6600' }
-                            : { color: '#11aa25' }
+                            : { color: '#11aa25' },
                 });
                 this.layerPolygon = L.geoJSON(features, layerOptions);
                 this.dashboardMap.addLayer(this.layerPolygon);

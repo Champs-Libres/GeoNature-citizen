@@ -39,6 +39,11 @@ div.largeMap {
     margin-bottom: 20px;
 }
 
+div#pieChart {
+    width:500px;
+    height:500px;
+}
+
 .reverse {
     flex-direction: column-reverse;
 }

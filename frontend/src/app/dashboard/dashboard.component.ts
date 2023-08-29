@@ -83,10 +83,7 @@ export class DashboardComponent implements AfterViewInit {
                                 .getProgramSites(p.id_program)
                                 .subscribe((site) => {
                                     const countImport = site.features.filter(
-                                        (f) =>
-                                            f.properties.obs_txt === 'import' ||
-                                            f.properties.obs_txt ===
-                                                'géoportail wallon'
+                                        (f) => this.isImported(f)
                                     ).length;
 
                                     this.sitePoint = site;
@@ -251,12 +248,17 @@ export class DashboardComponent implements AfterViewInit {
         Plotly.newPlot('histogram', data, layout);
     }
 
+    isImported(f: Feature): boolean {
+        return (
+            f.properties.obs_txt === 'import' ||
+            f.properties.obs_txt === 'import osm' ||
+            f.properties.obs_txt === 'géoportail wallon'
+        );
+    }
+
     countImport(featureCollection: FeatureCollection): number {
-        return featureCollection.features.filter(
-            (f) =>
-                f.properties.obs_txt === 'import' ||
-                f.properties.obs_txt === 'géoportail wallon'
-        ).length;
+        return featureCollection.features.filter((f) => this.isImported(f))
+            .length;
     }
 
     computeArea(coordinates: Position[][]): number {
@@ -403,23 +405,8 @@ export class DashboardComponent implements AfterViewInit {
     }
 
     getVisitsDataByKey(key: string, program: FeatureCollection): any[] {
-        const visitsData: any[] = [];
-        program.features.forEach((f) => {
-            if (f.properties.hasOwnProperty('visits')) {
-                if (
-                    f.properties.visits[
-                        f.properties.visits.length - 1
-                    ].json_data.hasOwnProperty(key)
-                ) {
-                    const data =
-                        f.properties.visits[f.properties.visits.length - 1]
-                            .json_data[key];
-                    visitsData.push(data);
-                }
-            }
-        });
-        return visitsData;
-    } //TODO count in another function the number of especes and send back an object with [{name: 'truc', count: 2} , {name: 'troc', count: 3} ]
+        return program.features.map((f) => f.properties.merged_visits[key]);
+    }
 
     countVisitsDataByKey(
         key: string,
@@ -436,7 +423,6 @@ export class DashboardComponent implements AfterViewInit {
         });
 
         results.sort((a, b) => b.count - a.count);
-
         return results;
     }
 
@@ -489,11 +475,9 @@ export class DashboardComponent implements AfterViewInit {
                 Object.assign(layerOptions, {
                     pointToLayer: (f: Feature, latlng): L.Marker => {
                         const marker: L.Marker<any> = L.marker(latlng, {
-                            icon:
-                                f.properties.obs_txt === 'import' ||
-                                f.properties.obs_txt === 'géoportail wallon'
-                                    ? conf.ORANGE_MARKER_ICON()
-                                    : conf.OBS_MARKER_ICON(),
+                            icon: this.isImported(f)
+                                ? conf.ORANGE_MARKER_ICON()
+                                : conf.OBS_MARKER_ICON(),
                         });
                         return marker;
                     },
@@ -506,8 +490,7 @@ export class DashboardComponent implements AfterViewInit {
             case 'LINESTRING':
                 Object.assign(layerOptions, {
                     style: (f: Feature) =>
-                        f.properties.obs_txt === 'import' ||
-                        f.properties.obs_txt === 'géoportail wallon'
+                        this.isImported(f)
                             ? { color: '#ff6600' }
                             : { color: '#11aa9e' },
                 });
@@ -519,8 +502,7 @@ export class DashboardComponent implements AfterViewInit {
             case 'POLYGON':
                 Object.assign(layerOptions, {
                     style: (f: Feature) =>
-                        f.properties.obs_txt === 'import' ||
-                        f.properties.obs_txt === 'géoportail wallon'
+                        this.isImported(f)
                             ? { color: '#ff6600' }
                             : { color: '#11aa25' },
                 });

@@ -40,6 +40,8 @@ export class DashboardComponent implements AfterViewInit {
     showLayerLine: boolean;
     showLayerPolygon: boolean;
     showMapLarge: boolean;
+    nGraphs: number;
+    currentGraph: number;
     dashboardMap: L.Map;
     options: any;
     constructor(
@@ -52,6 +54,9 @@ export class DashboardComponent implements AfterViewInit {
         this.dashboardData = dashboardData;
 
         this.titleService.setTitle(`${AppConfig.appName} - tableau de bord`);
+
+        this.nGraphs = 2;
+        this.currentGraph = 1;
 
         this.programService.getAllPrograms().subscribe((programs) => {
             this.programs = programs;
@@ -145,6 +150,18 @@ export class DashboardComponent implements AfterViewInit {
                                     );
 
                                     this.addLayerToMap(this.siteLine);
+
+                                    this.makePieChart(
+                                        this.siteLine,
+                                        'espece',
+                                        'Distribution des espèces'
+                                    );
+
+                                    this.makeHistogram(
+                                        this.siteLine,
+                                        'hauteur',
+                                        `Distribution des hauteurs d'arbres`
+                                    );
                                 });
                         }
 
@@ -176,6 +193,12 @@ export class DashboardComponent implements AfterViewInit {
                                     });
 
                                     this.addLayerToMap(this.sitePolygon);
+
+                                    this.makePieChart(
+                                        this.sitePolygon,
+                                        'espece',
+                                        'Distribution des espèces'
+                                    );
                                 });
                         }
                     });
@@ -217,8 +240,8 @@ export class DashboardComponent implements AfterViewInit {
         ];
 
         const layout = {
-            height: 400,
-            width: 400,
+            height: 350,
+            // width: 400,
             title: { text: title },
         };
 
@@ -236,12 +259,16 @@ export class DashboardComponent implements AfterViewInit {
                     (f) => f.properties.merged_visits[key]
                 ),
                 type: 'histogram',
+                nbinsx: 10,
+                marker: {
+                    color: '#001e50',
+                },
             },
         ];
 
         const layout = {
-            height: 400,
-            width: 400,
+            height: 350,
+            //width: 400,
             title: { text: title },
         };
 
@@ -570,6 +597,14 @@ export class DashboardComponent implements AfterViewInit {
             this.showMapLarge = false;
         } else {
             this.showMapLarge = true;
+        }
+    }
+
+    toggleGraph(): void {
+        if (this.currentGraph === this.nGraphs) {
+            this.currentGraph = 1;
+        } else {
+            this.currentGraph = this.currentGraph + 1;
         }
     }
 

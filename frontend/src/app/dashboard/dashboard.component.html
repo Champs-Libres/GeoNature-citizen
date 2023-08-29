@@ -80,8 +80,18 @@
                             <div class="">{{ sitePoint.count }} arbres répertoriés</div>
                             <div class="">dont {{ sitePoint.countImport }} arbres importés</div>
                             <div class="">{{ sitePoint.especesTable.length }} espèces différentes</div>
-                            <div id="pieChart"></div>
-                            <div id="histogram"></div>
+                            <div class="dashboard-toggle-graph p-2">
+                                <button
+                                    type="button"
+                                    class="btn btn-light float-left"
+                                    title="changer de graphique"
+                                    (click)="toggleGraph()"
+                                >
+                                    <i class="fa fa-forward"></i>
+                                </button>
+                            </div>
+                            <div id="pieChart" [ngClass]="currentGraph === 1 ? '' : 'graph-hidden'"></div>
+                            <div id="histogram" [ngClass]="currentGraph === 2 ? '' : 'graph-hidden'"></div>
                             <div>
                                 <details>
                                     <summary class="my-3">

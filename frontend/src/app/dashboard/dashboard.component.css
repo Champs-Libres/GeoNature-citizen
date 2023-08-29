@@ -39,11 +39,6 @@ div.largeMap {
     margin-bottom: 20px;
 }
 
-div#pieChart {
-    width:500px;
-    height:500px;
-}
-
 .reverse {
     flex-direction: column-reverse;
 }
@@ -73,6 +68,16 @@ div.dashboard-map-legend {
 
 div.dashboard-map-legend img {
     height: 22px;
+}
+
+div.dashboard-toggle-graph {
+    position: absolute;
+    z-index: 10;
+}
+
+div.graph-hidden {
+    visibility: hidden;
+    height: 0;
 }
 
 @media print {

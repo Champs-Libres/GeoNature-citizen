@@ -19,7 +19,12 @@
     <h3>2. Choisissez ensuite les paramètres de l'import</h3>
     <div class="mt-3 mb-4">
       <label><b>Nom de l'utilisateur</b></label>
-      <input id="username" name="username">
+      <!-- <input id="username" name="username"> -->
+      <select id="username" name="username">
+        {% for u in users %}
+        <option value={{ u.name }}>{{ u.name }}</option>
+        {% endfor %}
+      </select>
       <p><small>Nom d'utilisateur qui réalise l'import, ou bien source des données. C'est le nom d'utilisateur qui apparaitra pour chaque site importé. Ex: "import géoportail"</small></p>
     </div>
     <div class="mt-3 mb-4">

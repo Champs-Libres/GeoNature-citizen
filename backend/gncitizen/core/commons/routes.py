@@ -92,11 +92,16 @@ class UploadGeojsonView(BaseView):
             d.as_dict() for d in SiteTypeModel.query.order_by(SiteTypeModel.id_typesite.asc()).all()
         ]
 
+        users = [
+            d.as_dict() for d in UserModel.query.all()
+        ]
+        print(users)
+
         if request.method == 'POST':
             # check if the post request has the file part
             if 'file' not in request.files:
                 print('No file part')
-                return self.render('upload_geojson.html', programs=programs, site_types=site_types)
+                return self.render('upload_geojson.html', programs=programs, site_types=site_types, users=users)
             file = request.files['file']
             feature_name = request.form['feature_name'] if request.form.get('feature_name') else None
             program = request.form['program'] if request.form.get('program') else None
@@ -105,13 +110,13 @@ class UploadGeojsonView(BaseView):
             # submit an empty part without filename
             if file.filename == '':
                 print('No selected file')
-                return self.render('upload_geojson.html', programs=programs, site_types=site_types)
+                return self.render('upload_geojson.html', programs=programs, site_types=site_types, users=users)
             if file and allowed_file(file.filename) and feature_name:
                 import_geojson(json.load(file), request.form)
                 return self.render('upload_geojson.html', success=True)
 
 
-        return self.render('upload_geojson.html', programs=programs, site_types=site_types)
+        return self.render('upload_geojson.html', programs=programs, site_types=site_types, users=users)
 
 ALLOWED_EXTENSIONS = {'json', 'geojson'}
 

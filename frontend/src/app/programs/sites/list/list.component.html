@@ -62,7 +62,14 @@
                     <p>
                         {{ o.properties.site_type.type | titlecase }} ajouté(e)
                         par
-                        <span>{{ o.properties.obs_txt }}</span>
+                        <span>
+                            <img
+                            class="author_eval"
+                            *ngIf="o.properties.eval === 'confiance'"
+                            [src]="apiEndpoint + '/media/confiance.svg'"
+                            alt="badge de confiance"
+                        />
+                        {{ o.properties.obs_txt }}</span>
                     </p>
                     <p>
                         le

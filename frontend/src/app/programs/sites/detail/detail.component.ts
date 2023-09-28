@@ -70,6 +70,7 @@ export class SiteDetailComponent
                 const visitData = {
                     date: e.date,
                     author: e.author,
+                    author_eval: e.author_eval,
                     id: e.id_visit,
                     json_data: e.json_data,
                 };

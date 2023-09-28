@@ -90,8 +90,9 @@
                                     <i class="fa fa-forward"></i>
                                 </button>
                             </div>
-                            <div id="pieChart" [ngClass]="currentGraph === 1 ? '' : 'graph-hidden'"></div>
-                            <div id="histogram" [ngClass]="currentGraph === 2 ? '' : 'graph-hidden'"></div>
+                            <div id="graph1" [ngClass]="currentGraph === 1 ? '' : 'graph-hidden'"></div>
+                            <div id="graph2" [ngClass]="currentGraph === 2 ? '' : 'graph-hidden'"></div>
+                            <!-- <div id="graph3" [ngClass]="currentGraph === 3 ? '' : 'graph-hidden'"></div> -->
                             <div>
                                 <details>
                                     <summary class="my-3">
@@ -139,6 +140,19 @@
                             <div class="">dont {{ siteLine.countImport }} haies importées</div>
                             <div class="">{{ siteLine.sumLineLength.toFixed(2) }} km de haies</div>
                             <div class="">{{ siteLine.especesTable.length }} espèces différentes</div>
+                            <div class="dashboard-toggle-graph p-2">
+                                <button
+                                    type="button"
+                                    class="btn btn-light float-left"
+                                    title="changer de graphique"
+                                    (click)="toggleGraph()"
+                                >
+                                    <i class="fa fa-forward"></i>
+                                </button>
+                            </div>
+                            <div id="graph1" [ngClass]="currentGraph === 1 ? '' : 'graph-hidden'"></div>
+                            <div id="graph2" [ngClass]="currentGraph === 2 ? '' : 'graph-hidden'"></div>
+                            <div id="graph3" [ngClass]="currentGraph === 3 ? '' : 'graph-hidden'"></div>
                             <div>
                                 <details>
                                     <summary class="my-3">
@@ -185,6 +199,19 @@
                             <div class="">{{ sitePolygon.count }} zones naturelles répertoriées</div>
                             <div class="">dont {{ sitePolygon.countImport }} zones importées</div>
                             <div *ngIf="sitePolygon.sumArea" class="">{{ sitePolygon.sumArea.toFixed(2) }} ha</div>
+                            <div class="dashboard-toggle-graph p-2">
+                                <button
+                                    type="button"
+                                    class="btn btn-light float-left"
+                                    title="changer de graphique"
+                                    (click)="toggleGraph()"
+                                >
+                                    <i class="fa fa-forward"></i>
+                                </button>
+                            </div>
+                            <div id="graph1" [ngClass]="currentGraph === 1 ? '' : 'graph-hidden'"></div>
+                            <div id="graph2" [ngClass]="currentGraph === 2 ? '' : 'graph-hidden'"></div>
+                            <div id="graph3" [ngClass]="currentGraph === 3 ? '' : 'graph-hidden'"></div>
                             <div>
                                 <details>
                                     <summary class="my-3">

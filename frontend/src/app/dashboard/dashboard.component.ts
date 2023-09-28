@@ -107,16 +107,25 @@ export class DashboardComponent implements AfterViewInit {
                                     this.addLayerToMap(this.sitePoint);
 
                                     this.makePieChart(
+                                        'graph1',
                                         this.sitePoint,
                                         'espece',
                                         'Distribution des espèces'
                                     );
 
                                     this.makeHistogram(
+                                        'graph2',
                                         this.sitePoint,
                                         'hauteur',
                                         `Distribution des hauteurs d'arbres`
                                     );
+
+                                    // this.makeHistogram(
+                                    //     'graph3',
+                                    //     this.sitePoint,
+                                    //     'circonference',
+                                    //     `Distribution des circonférences`
+                                    // );
                                 });
                         }
 
@@ -152,12 +161,14 @@ export class DashboardComponent implements AfterViewInit {
                                     this.addLayerToMap(this.siteLine);
 
                                     this.makePieChart(
+                                        'graph1',
                                         this.siteLine,
                                         'espece',
                                         'Distribution des espèces'
                                     );
 
                                     this.makeHistogram(
+                                        'graph2',
                                         this.siteLine,
                                         'hauteur',
                                         `Distribution des hauteurs d'arbres`
@@ -195,6 +206,7 @@ export class DashboardComponent implements AfterViewInit {
                                     this.addLayerToMap(this.sitePolygon);
 
                                     this.makePieChart(
+                                        'graph1',
                                         this.sitePolygon,
                                         'espece',
                                         'Distribution des espèces'
@@ -207,6 +219,7 @@ export class DashboardComponent implements AfterViewInit {
     }
 
     makePieChart(
+        graphId: string,
         features: FeatureCollection,
         key: string,
         title: string
@@ -245,10 +258,11 @@ export class DashboardComponent implements AfterViewInit {
             title: { text: title },
         };
 
-        Plotly.newPlot('pieChart', data, layout);
+        Plotly.newPlot(graphId, data, layout);
     }
 
     makeHistogram(
+        graphId: string,
         features: FeatureCollection,
         key: string,
         title: string
@@ -272,7 +286,7 @@ export class DashboardComponent implements AfterViewInit {
             title: { text: title },
         };
 
-        Plotly.newPlot('histogram', data, layout);
+        Plotly.newPlot(graphId, data, layout);
     }
 
     isImported(f: Feature): boolean {

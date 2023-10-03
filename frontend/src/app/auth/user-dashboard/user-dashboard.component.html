@@ -48,7 +48,12 @@
                         ></div>
                     </div>
                     <p (click)="onEditInfos(personalInfos)">
-                        {{ username }} <i class="fa fa-pencil"></i>
+                        <img
+                            class="author_eval"
+                            *ngIf="eval === 'confiance'"
+                            [src]="MainConfig.API_ENDPOINT + '/media/confiance.svg'"
+                            alt="badge de confiance"
+                        />{{ username }} <i class="fa fa-pencil"></i>
                     </p>
                 </div>
             </div>

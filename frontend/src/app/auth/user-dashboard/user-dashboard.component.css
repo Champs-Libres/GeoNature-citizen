@@ -323,3 +323,9 @@ app-modalflow {
 .observations {
     margin-top: -160px;
 }
+
+img.author_eval {
+    min-width: 20px!important;
+    max-width: 20px!important;
+    height: 20px;
+}

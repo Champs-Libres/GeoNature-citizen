@@ -141,13 +141,13 @@
                 <ng-container *ngIf="a.data || a.photos.length > 0">
                     <h5>
                         <i class="fa fa-calendar"></i>
-                        {{ a.date | date: 'longDate' }} par {{ a.author }}
-                        <span><img
+                        {{ a.date | date: 'longDate' }} par
+                        <span class="author"><img
                             class="author_eval"
                             *ngIf="a.author_eval === 'confiance'"
                             [src]="URL + '/media/confiance.svg'"
                             alt="badge de confiance"
-                        /></span>
+                        />{{ a.author }}&nbsp;</span>
                         <i
                             class="fa fa-edit text-primary"
                             ngbTooltip="Editer"

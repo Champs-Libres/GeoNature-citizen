@@ -30,6 +30,7 @@ export class UserDashboardComponent implements OnInit {
     stats: any;
     personalInfo: any = {};
     badges: any;
+    eval: string;
     main_badges: any = [];
     programs_badges: any = [];
     recognition_badges: any = [];
@@ -72,6 +73,7 @@ export class UserDashboardComponent implements OnInit {
                             this.isLoggedIn = true;
                             this.username = user['features']['username'];
                             this.stats = user['features']['stats'];
+                            this.eval = user['features']['eval'];
                             this.role_id = user['features']['id_role'];
                             this.userService.role_id = this.role_id;
                             if (user['features']['avatar'])

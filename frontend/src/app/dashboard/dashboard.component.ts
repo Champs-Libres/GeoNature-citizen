@@ -27,6 +27,7 @@ interface CountByKey {
 export class DashboardComponent implements AfterViewInit {
     dashboardData: dashboardDataType;
     programs: Program[];
+    sites: ExtraFeatureCollection[];
     sitePoint: ExtraFeatureCollection;
     siteLine: ExtraFeatureCollection;
     sitePolygon: ExtraFeatureCollection;
@@ -60,6 +61,7 @@ export class DashboardComponent implements AfterViewInit {
 
         this.programService.getAllPrograms().subscribe((programs) => {
             this.programs = programs;
+            this.sites = [];
             console.log('this.programs: ', this.programs);
 
             const mapContainer = document.getElementById('dashboardMap');
@@ -70,150 +72,63 @@ export class DashboardComponent implements AfterViewInit {
 
             for (let p of this.programs) {
                 console.log('p', p);
+
                 this.programService
-                    .getProgram(p.id_program)
-                    .subscribe((program) => {
-                        if (p.geometry_type === 'point' && p.id_project === 1) {
-                            this.programPoint = program;
-                            console.log(
-                                'this.programPoint:',
-                                this.programPoint
-                            );
+                    .getProgramSites(p.id_program)
+                    .subscribe((site) => {
+                        const countImport = site.features.filter((f) => this.isImported(f)).length;
 
-                            if (this.programPoint) {
-                                this.addProgramLayer(this.programPoint);
+                        //this.addLayerToMap(this.sitePoint);
+
+                        //const formKey = ['espece']//, 'hauteur']; //TODO get these values from the site variable
+
+                        const formKey =
+                            site.features[0].properties.program.custom_form.json_schema.schema.properties;
+                        console.log(formKey);
+
+
+                        for (let k in formKey) {
+                            if (formKey[k].type === 'integer') {
+                                console.log('integer', `site${p.id_program}-graph-${k}`)
                             }
-
-                            this.programService
-                                .getProgramSites(p.id_program)
-                                .subscribe((site) => {
-                                    const countImport = site.features.filter(
-                                        (f) => this.isImported(f)
-                                    ).length;
-
-                                    this.sitePoint = site;
-                                    Object.assign(this.sitePoint, {
-                                        countImport: countImport,
-                                        especesTable: this.countVisitsDataByKey(
-                                            'espece',
-                                            this.sitePoint
-                                        ),
-                                    });
-                                    console.log(
-                                        'this.sitePoint:',
-                                        this.sitePoint
-                                    );
-
-                                    this.addLayerToMap(this.sitePoint);
-
-                                    this.makePieChart(
-                                        'graph1',
-                                        this.sitePoint,
-                                        'espece',
-                                        'Distribution des espèces'
-                                    );
-
-                                    this.makeHistogram(
-                                        'graph2',
-                                        this.sitePoint,
-                                        'hauteur',
-                                        `Distribution des hauteurs d'arbres`
-                                    );
-
-                                    // this.makeHistogram(
-                                    //     'graph3',
-                                    //     this.sitePoint,
-                                    //     'circonference',
-                                    //     `Distribution des circonférences`
-                                    // );
-                                });
+                            if (formKey[k].type === 'string') {
+                                console.log('string', `site${p.id_program}-graph-${k}`)
+                            }
                         }
 
-                        if (
-                            p.geometry_type === 'linestring' &&
-                            p.id_project === 1
-                        ) {
-                            this.programLine = program;
-                            console.log('this.programLine:', this.programLine);
+                        Object.assign(site, {
+                            title: p.title,
+                            programId: p.id_program,
+                            countImport: countImport,
+                            sumLineLength: this.computeTotalLength(site),
+                            formKey: Object.keys(formKey), //TODO transform in array for ngFor
+                            // especesTable: this.countVisitsDataByKey(
+                            //     'espece',
+                            //     this.sitePoint
+                            // ),
+                        });
+                        this.sites.push(site);
+                        console.log('this.sites:', this.sites);
 
-                            this.programService
-                                .getProgramSites(p.id_program)
-                                .subscribe((site) => {
-                                    this.siteLine = site;
-                                    Object.assign(this.siteLine, {
-                                        countImport: this.countImport(
-                                            this.siteLine
-                                        ),
-                                        sumLineLength: this.computeTotalLength(
-                                            this.siteLine
-                                        ),
-                                        especesTable: this.countVisitsDataByKey(
-                                            'espece',
-                                            this.siteLine
-                                        ),
-                                    });
-
-                                    console.log(
-                                        'this.siteLines:',
-                                        this.siteLine
-                                    );
-
-                                    this.addLayerToMap(this.siteLine);
-
-                                    this.makePieChart(
-                                        'graph1',
-                                        this.siteLine,
-                                        'espece',
-                                        'Distribution des espèces'
-                                    );
-
-                                    this.makeHistogram(
-                                        'graph2',
-                                        this.siteLine,
-                                        'hauteur',
-                                        `Distribution des hauteurs d'arbres`
-                                    );
-                                });
+                        for (let k in formKey) {
+                            if (formKey[k].type === 'integer') {
+                                this.makeHistogram(
+                                    `site${p.id_program}-graph-${k}`,
+                                    site,
+                                    k,
+                                    formKey[k].title
+                                );
+                            }
+                            if (formKey[k].type === 'string') {
+                                this.makePieChart(
+                                    `site${p.id_program}-graph-${k}`,
+                                    site,
+                                    k,
+                                    formKey[k].title
+                                );
+                            }
                         }
-
-                        if (
-                            p.geometry_type === 'polygon' &&
-                            p.id_project === 1
-                        ) {
-                            this.programPolygon = program;
-                            console.log(
-                                'this.programZones:',
-                                this.programPolygon
-                            );
-
-                            this.programService
-                                .getProgramSites(p.id_program)
-                                .subscribe((site) => {
-                                    this.sitePolygon = site;
-                                    console.log(
-                                        'this.sitePolygon:',
-                                        this.sitePolygon
-                                    );
-                                    Object.assign(this.sitePolygon, {
-                                        countImport: this.countImport(
-                                            this.sitePolygon
-                                        ),
-                                        sumArea: this.computeTotalArea(
-                                            this.sitePolygon
-                                        ),
-                                    });
-
-                                    this.addLayerToMap(this.sitePolygon);
-
-                                    this.makePieChart(
-                                        'graph1',
-                                        this.sitePolygon,
-                                        'espece',
-                                        'Distribution des espèces'
-                                    );
-                                });
-                        }
-                    });
+                });
             }
         });
     }

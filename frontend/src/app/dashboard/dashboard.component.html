@@ -52,184 +52,72 @@
         </div>
     </div>
 
+
+    <!-- <div id="site1-graph-espece" [ngClass]="currentGraph === 1 ? '' : 'graph-hidden'"></div>
+    <div id="site2-graph-espece" [ngClass]="currentGraph === 2 ? '' : 'graph-hidden'"></div> -->
+
     <div class="row">
         <div class="col-lg-12">
             <h2 class="mt-4">Les programmes</h2>
         </div>
 
-        <div class="col-lg-12">
-            <div class="row" [ngClass]="{'reverse': showMapLarge, '': !showMapLarge}">
+        <div *ngFor="let p of sites" class="col-lg-12">
 
-                <!-- <div *ngIf=!showMapLarge class="col-lg-6"> -->
-                <div [ngClass]="{'col-lg-12': showMapLarge, 'col-lg-6': !showMapLarge}" class="col-lg-6 programs">
-                    <div class="dashboard-program border p-4" *ngIf="programPoint">
-                        <div class="dashboard-program-header">
-                            <h3>{{programPoint.features[0].properties.title}}</h3>
-                            <div class="dashboard-toggle-layer">
-                                <button
-                                    type="button"
-                                    class="btn btn-light float-right"
-                                    (click)="togglePointLayer()"
-                                >
-                                <i *ngIf="showLayerPoint else elseBlockPoint" class="fa fa-eye"></i>
-                                <ng-template #elseBlockPoint><i class="fa fa-eye-slash"></i></ng-template>
-                                </button>
-                            </div>
-                        </div>
-                        <div *ngIf="sitePoint">
-                            <div class="">{{ sitePoint.count }} arbres répertoriés</div>
-                            <div class="">dont {{ sitePoint.countImport }} arbres importés</div>
-                            <div class="">{{ sitePoint.especesTable.length }} espèces différentes</div>
-                            <div class="dashboard-toggle-graph p-2">
-                                <button
-                                    type="button"
-                                    class="btn btn-light float-left"
-                                    title="changer de graphique"
-                                    (click)="toggleGraph()"
-                                >
-                                    <i class="fa fa-forward"></i>
-                                </button>
-                            </div>
-                            <div id="graph1" [ngClass]="currentGraph === 1 ? '' : 'graph-hidden'"></div>
-                            <div id="graph2" [ngClass]="currentGraph === 2 ? '' : 'graph-hidden'"></div>
-                            <!-- <div id="graph3" [ngClass]="currentGraph === 3 ? '' : 'graph-hidden'"></div> -->
-                            <div>
-                                <details>
-                                    <summary class="my-3">
-                                        Liste des espèces répertoriées
-                                    </summary>
-                                    <table class="dashboard-table table">
-                                        <tr *ngFor="let l of sitePoint?.especesTable">
-                                            <td>{{ l.name }}</td>
-                                            <td>{{ l.count }}</td>
-                                        </tr>
-                                    </table>
-                                </details>
-                            </div>
-                            <div>
-                                <details>
-                                    <summary class="my-3">
-                                        Liste des arbres répertoriés
-                                    </summary>
-                                    <ul>
-                                        <li class="mt-2" *ngFor="let s of sitePoint?.features">
-                                            {{ s.properties.name }}
-                                        </li>
-                                    </ul>
-                                </details>
-                            </div>
-                        </div>
+            <div class="row">
+                <h3>{{ p.title }}</h3>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-6 dashboard-program-info">
+
+                    <div class="">{{ p.count }} sites répertoriés</div>
+                    <div class="">dont {{ p.countImport }} importés</div>
+
+                    <!-- <div *ngIf="sitePoint">
+                        <div class="">{{ sitePoint.count }} sites répertoriés</div>
+                        <div class="">dont {{ sitePoint.countImport }} importés</div>
+                        <div class="">{{ sitePoint.especesTable.length }} espèces différentes</div>
                     </div>
 
-                    <div class="dashboard-program border p-4" *ngIf="programLine">
-                        <div class="dashboard-program-header">
-                            <h3>{{programLine.features[0].properties.title}}</h3>
-                            <div class="dashboard-toggle-layer">
-                                <button
-                                    type="button"
-                                    class="btn btn-light float-right"
-                                    (click)="toggleLineLayer()"
-                                >
-                                <i *ngIf="showLayerLine else elseBlockLine" class="fa fa-eye"></i>
-                                <ng-template #elseBlockLine><i class="fa fa-eye-slash"></i></ng-template>
-                                </button>
-                            </div>
-                        </div>
-                        <div *ngIf="siteLine">
-                            <div class="">{{ siteLine.count }} haies répertoriées</div>
-                            <div class="">dont {{ siteLine.countImport }} haies importées</div>
-                            <div class="">{{ siteLine.sumLineLength.toFixed(2) }} km de haies</div>
-                            <div class="">{{ siteLine.especesTable.length }} espèces différentes</div>
-                            <div class="dashboard-toggle-graph p-2">
-                                <button
-                                    type="button"
-                                    class="btn btn-light float-left"
-                                    title="changer de graphique"
-                                    (click)="toggleGraph()"
-                                >
-                                    <i class="fa fa-forward"></i>
-                                </button>
-                            </div>
-                            <div id="graph1" [ngClass]="currentGraph === 1 ? '' : 'graph-hidden'"></div>
-                            <div id="graph2" [ngClass]="currentGraph === 2 ? '' : 'graph-hidden'"></div>
-                            <div id="graph3" [ngClass]="currentGraph === 3 ? '' : 'graph-hidden'"></div>
-                            <div>
-                                <details>
-                                    <summary class="my-3">
-                                        Liste des espèces répertoriées
-                                    </summary>
-                                    <table class="dashboard-table table">
-                                        <tr *ngFor="let l of siteLine?.especesTable">
-                                            <td>{{ l.name }}</td>
-                                            <td>{{ l.count }}</td>
-                                        </tr>
-                                    </table>
-                                </details>
-                            </div>
-                            <div>
-                                <details>
-                                    <summary class="my-3">
-                                        Liste des haies répertoriées
-                                    </summary>
-                                    <ul>
-                                        <li class="mt-2" *ngFor="let s of siteLine?.features">
-                                            {{ s.properties.name }}
-                                        </li>
-                                    </ul>
-                                </details>
-                            </div>
-                        </div>
+                    <div *ngIf="siteLine">
+                        <div class="">{{ siteLine.count }} sites répertoriés</div>
+                        <div class="">dont {{ siteLine.countImport }} importées</div>
+                        <div class="">{{ siteLine.sumLineLength.toFixed(2) }} km</div>
+                        <div class="">{{ siteLine.especesTable.length }} espèces différentes</div>
                     </div>
 
-                    <div class="dashboard-program border p-4" *ngIf="programPolygon">
-                        <div class="dashboard-program-header">
-                            <h3>{{programPolygon.features[0].properties.title}}</h3>
-                            <div class="dashboard-toggle-layer">
-                                <button
-                                    type="button"
-                                    class="btn btn-light float-right"
-                                    (click)="togglePolygonLayer()"
-                                >
-                                <i *ngIf="showLayerPolygon else elseBlockPolygon" class="fa fa-eye"></i>
-                                <ng-template #elseBlockPolygon><i class="fa fa-eye-slash"></i></ng-template>
-                                </button>
-                            </div>
-                        </div>
-                        <div *ngIf="sitePolygon">
-                            <div class="">{{ sitePolygon.count }} zones naturelles répertoriées</div>
-                            <div class="">dont {{ sitePolygon.countImport }} zones importées</div>
-                            <div *ngIf="sitePolygon.sumArea" class="">{{ sitePolygon.sumArea.toFixed(2) }} ha</div>
-                            <div class="dashboard-toggle-graph p-2">
-                                <button
-                                    type="button"
-                                    class="btn btn-light float-left"
-                                    title="changer de graphique"
-                                    (click)="toggleGraph()"
-                                >
-                                    <i class="fa fa-forward"></i>
-                                </button>
-                            </div>
-                            <div id="graph1" [ngClass]="currentGraph === 1 ? '' : 'graph-hidden'"></div>
-                            <div id="graph2" [ngClass]="currentGraph === 2 ? '' : 'graph-hidden'"></div>
-                            <div id="graph3" [ngClass]="currentGraph === 3 ? '' : 'graph-hidden'"></div>
-                            <div>
-                                <details>
-                                    <summary class="my-3">
-                                        Liste des zones répertoriées
-                                    </summary>
-                                    <ul>
-                                        <li class="mt-2" *ngFor="let s of sitePolygon?.features">
-                                            {{ s.properties.name }}
-                                        </li>
-                                    </ul>
-                                </details>
-                            </div>
-                        </div>
-                    </div>
-
+                    <div *ngIf="sitePolygon">
+                        <div class="">{{ sitePolygon.count }} sites répertoriés</div>
+                        <div class="">dont {{ sitePolygon.countImport }} importées</div>
+                        <div *ngIf="sitePolygon.sumArea" class="">{{ sitePolygon.sumArea.toFixed(2) }} ha</div>
+                    </div> -->
                 </div>
 
-                <div [ngClass]="{'col-lg-12': showMapLarge, 'col-lg-6': !showMapLarge}" class="dashboard-map" >
+                <div class="col-lg-6 dashboard-program-graph">
+                    <div class="dashboard-toggle-graph p-2">
+                        <button
+                            type="button"
+                            class="btn btn-light float-left"
+                            title="changer de graphique"
+                            (click)="toggleGraph()"
+                        >
+                            <i class="fa fa-forward"></i>
+                        </button>
+                    </div>
+                    <div *ngFor="let k of p.formKey">
+                        site{{p.programId}}-graph-{{k}}
+                        <div id="site{{p.programId}}-graph-{{k}}" ></div>
+                    </div>
+
+
+                    <div id="site1-graph-espece" [ngClass]="currentGraph === 1 ? '' : 'graph-hidden'"></div>
+                    <div id="site2-graph-espece" [ngClass]="currentGraph === 2 ? '' : 'graph-hidden'"></div>
+                    <div id="graph3" [ngClass]="currentGraph === 3 ? '' : 'graph-hidden'"></div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div [ngClass]="col-lg-12" class="dashboard-map" >
                     <div class="col-lg-12" id="dashboardMap" [ngClass]="{'largeMap': showMapLarge}"></div>
                     <div class="dashboard-map-switch">
                         <button

@@ -70,7 +70,7 @@ export class DashboardComponent implements AfterViewInit {
                 this.initMap(conf);
             }
 
-            for (let p of this.programs) {
+            for (const p of this.programs) {
                 console.log('p', p);
 
                 this.programService
@@ -86,22 +86,12 @@ export class DashboardComponent implements AfterViewInit {
                             site.features[0].properties.program.custom_form.json_schema.schema.properties;
                         console.log(formKey);
 
-
-                        for (let k in formKey) {
-                            if (formKey[k].type === 'integer') {
-                                console.log('integer', `site${p.id_program}-graph-${k}`)
-                            }
-                            if (formKey[k].type === 'string') {
-                                console.log('string', `site${p.id_program}-graph-${k}`)
-                            }
-                        }
-
                         Object.assign(site, {
                             title: p.title,
                             programId: p.id_program,
                             countImport: countImport,
                             sumLineLength: this.computeTotalLength(site),
-                            formKey: Object.keys(formKey), //TODO transform in array for ngFor
+                            formKey: Object.keys(formKey),
                             // especesTable: this.countVisitsDataByKey(
                             //     'espece',
                             //     this.sitePoint
@@ -109,29 +99,71 @@ export class DashboardComponent implements AfterViewInit {
                         });
                         this.sites.push(site);
                         console.log('this.sites:', this.sites);
-
-                        for (let k in formKey) {
+                        let ii = 1;
+                        for (const k in formKey) {
                             if (formKey[k].type === 'integer') {
-                                this.makeHistogram(
+                                console.log('making histogram', `site${p.id_program}-graph-${k}`)
+                                // this.makeHistogram(
+                                //     `site${p.id_program}-graph-${k}`,
+                                //     site,
+                                //     k,
+                                //     formKey[k].title
+                                // );
+                                setTimeout(() => this.makeHistogram(
                                     `site${p.id_program}-graph-${k}`,
                                     site,
                                     k,
                                     formKey[k].title
-                                );
+                                ), 100);
+                                ii = ii + 1;
                             }
                             if (formKey[k].type === 'string') {
-                                this.makePieChart(
+                                console.log('making pie-chart', `site${p.id_program}-graph-${k}`)
+                                // this.makePieChart(
+                                //     `site${p.id_program}-graph-${k}`,
+                                //     site,
+                                //     k,
+                                //     formKey[k].title
+                                // );
+                                setTimeout(() => this.makePieChart(
                                     `site${p.id_program}-graph-${k}`,
                                     site,
                                     k,
                                     formKey[k].title
-                                );
+                                ), 100);
+                                ii = ii + 1;
                             }
                         }
-                });
+                    });
             }
         });
     }
+
+    // ngAfterViewInit(): void {
+
+    //     for (let p of this.sites) {
+    //         for (let k in p.formKey) {
+    //             if (p.formKey[k].type === 'integer') {
+    //                 console.log('making histogram', `site${p.programId}-graph-${k}`)
+    //                 this.makeHistogram(
+    //                     `site${p.id_program}-graph-${k}`,
+    //                     p,
+    //                     k,
+    //                     p.formKey[k].title
+    //                 );
+    //             }
+    //             if (p.formKey[k].type === 'string') {
+    //                 console.log('making pie-chart', `site${p.programId}-graph-${k}`)
+    //                 this.makePieChart(
+    //                     `site${p.id_program}-graph-${k}`,
+    //                     p,
+    //                     k,
+    //                     p.formKey[k].title
+    //                 );
+    //             }
+    //         }
+    //     }
+    // }
 
     makePieChart(
         graphId: string,

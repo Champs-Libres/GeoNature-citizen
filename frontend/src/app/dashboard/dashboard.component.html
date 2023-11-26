@@ -69,6 +69,12 @@
                     <div class="">{{ p.count }} sites répertoriés</div>
                     <div class="">dont {{ p.countImport }} importés</div>
 
+                    <div *ngIf="p.geometryType === 'ligne'">
+                        programme ligne:
+                        <div class="">{{ p.sumLineLength.toFixed(2) }} km</div>
+                    </div>
+
+
                     <!-- <div *ngIf="sitePoint">
                         <div class="">{{ sitePoint.count }} sites répertoriés</div>
                         <div class="">dont {{ sitePoint.countImport }} importés</div>

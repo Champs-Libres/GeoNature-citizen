@@ -87,6 +87,7 @@ export class DashboardComponent implements AfterViewInit {
                         Object.assign(site, {
                             title: p.title,
                             programId: p.id_program,
+                            geometryType: p.geometry_type,
                             countImport: countImport,
                             sumLineLength: this.computeTotalLength(site),
                             formKey: Object.keys(formKey),

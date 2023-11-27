@@ -56,7 +56,7 @@ export class DashboardComponent implements AfterViewInit {
 
         this.titleService.setTitle(`${AppConfig.appName} - tableau de bord`);
 
-        this.nGraphs = 2;
+        this.nGraphs = 5;
         this.currentGraph = 1;
 
         this.programService.getAllPrograms().subscribe((programs) => {
@@ -65,7 +65,7 @@ export class DashboardComponent implements AfterViewInit {
             console.log('this.programs: ', this.programs);
 
             const mapContainer = document.getElementById('dashboardMap');
-
+            console.log(mapContainer)
             if (mapContainer) {
                 this.initMap(conf);
             }
@@ -76,66 +76,66 @@ export class DashboardComponent implements AfterViewInit {
                 this.programService
                     .getProgramSites(p.id_program)
                     .subscribe((site) => {
-                        const countImport = site.features.filter((f) => this.isImported(f)).length;
+                        const countImport = site.features.filter((f) =>
+                            this.isImported(f)
+                        ).length;
+                        console.log('site', site);
+                        if (site.features.length > 0) {
+                            //this.addLayerToMap(site);
 
-                        //this.addLayerToMap(this.sitePoint);
+                            const formKey =
+                                site.features[0].properties.program.custom_form
+                                    .json_schema.schema.properties;
 
-                        const formKey =
-                            site.features[0].properties.program.custom_form.json_schema.schema.properties;
-                        console.log(formKey);
-
-                        const countByKey = {};
-                        for (const k in formKey) {
-                            if (formKey[k].type === 'string') {
-                                countByKey[k] = this.countVisitsDataByKey(k, site);
+                            const countByKey = {};
+                            for (const k in formKey) {
+                                if (formKey[k].type === 'string') {
+                                    countByKey[k] = this.countVisitsDataByKey(
+                                        k,
+                                        site
+                                    );
+                                }
                             }
-                        }
 
-                        Object.assign(site, {
-                            title: p.title,
-                            programId: p.id_program,
-                            geometryType: p.geometry_type,
-                            countImport: countImport,
-                            sumLineLength: this.computeTotalLength(site),
-                            sumArea: this.computeTotalArea(site),
-                            formKey: Object.keys(formKey),
-                            countByKey: countByKey,
-                        });
-                        this.sites.push(site);
-                        console.log('this.sites:', this.sites);
+                            Object.assign(site, {
+                                title: p.title,
+                                programId: p.id_program,
+                                geometryType: p.geometry_type,
+                                countImport: countImport,
+                                sumLineLength: this.computeTotalLength(site),
+                                sumArea: this.computeTotalArea(site),
+                                keys: Object.keys(formKey),
+                                formKey: formKey,
+                                countByKey: countByKey,
+                            });
+                            this.sites.push(site);
+                            console.log('this.sites:', this.sites);
 
-                        for (const k in formKey) {
-                            if (formKey[k].type === 'integer') {
-                                console.log(
-                                    'making histogram',
-                                    `site${p.id_program}-graph-${k}`
-                                );
-                                setTimeout(
-                                    () =>
-                                        this.makeHistogram(
-                                            `site${p.id_program}-graph-${k}`,
-                                            site,
-                                            k,
-                                            formKey[k].title
-                                        ),
-                                    100
-                                );
-                            }
-                            if (formKey[k].type === 'string') {
-                                console.log(
-                                    'making pie-chart',
-                                    `site${p.id_program}-graph-${k}`
-                                );
-                                setTimeout(
-                                    () =>
-                                        this.makePieChart(
-                                            `site${p.id_program}-graph-${k}`,
-                                            site,
-                                            k,
-                                            formKey[k].title
-                                        ),
-                                    100
-                                );
+                            for (const k in formKey) {
+                                if (formKey[k].type === 'integer') {
+                                    setTimeout(
+                                        () =>
+                                            this.makeHistogram(
+                                                `site${p.id_program}-graph-${k}`,
+                                                site,
+                                                k,
+                                                formKey[k].title
+                                            ),
+                                        100
+                                    );
+                                }
+                                if (formKey[k].type === 'string') {
+                                    setTimeout(
+                                        () =>
+                                            this.makePieChart(
+                                                `site${p.id_program}-graph-${k}`,
+                                                site,
+                                                k,
+                                                formKey[k].title
+                                            ),
+                                        100
+                                    );
+                                }
                             }
                         }
                     });
@@ -194,8 +194,12 @@ export class DashboardComponent implements AfterViewInit {
     ): void {
         const data = [
             {
-                x: features.features.map(
-                    (f) => f.properties.merged_visits[key]
+                x: features.features.map((f) =>
+                    'merged_visits' in f.properties
+                        ? key in f.properties.merged_visits
+                            ? f.properties.merged_visits[key]
+                            : null
+                        : null
                 ),
                 type: 'histogram',
                 nbinsx: 10,
@@ -371,7 +375,13 @@ export class DashboardComponent implements AfterViewInit {
     }
 
     getVisitsDataByKey(key: string, program: FeatureCollection): any[] {
-        return program.features.map((f) => f.properties.merged_visits[key]);
+        return program.features.map((f) =>
+            'merged_visits' in f.properties
+                ? key in f.properties.merged_visits
+                    ? f.properties.merged_visits[key]
+                    : 'pas de données'
+                : 'pas de données'
+        );
     }
 
     countVisitsDataByKey(
@@ -433,7 +443,7 @@ export class DashboardComponent implements AfterViewInit {
                 layer.bindPopup(popupContent);
             },
         };
-
+        console.log(features);
         const geometryType = features.features[0].geometry.type.toUpperCase();
         switch (geometryType) {
             case 'POINT':

@@ -79,19 +79,23 @@
                         <div class="">{{ p.sumArea.toFixed(2) }} ha</div>
                     </div>
 
-                    <div *ngFor="let k of p.formKey">
+                    <div *ngFor="let k of p.keys">
                         <div id="countByKey-{{k}}" >
-                            <div *ngFor="let v of p.countByKey[k]">
-                                {{ v }}
-                                {{ v.name }}
-                                {{ v.count }}
-                            </div>
+                            <h4 class="mt-4">{{ p.formKey[k].title }}</h4>
+                            <table class="table table-striped">
+                                <tbody>
+                                    <tr *ngFor="let v of p.countByKey[k]">
+                                        <td>{{ v.name }}</td>
+                                        <td>{{ v.count }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-lg-6 dashboard-program-graph">
-                    <div class="dashboard-toggle-graph p-2">
+                    <!-- <div class="dashboard-toggle-graph p-2">
                         <button
                             type="button"
                             class="btn btn-light float-left"
@@ -100,18 +104,18 @@
                         >
                             <i class="fa fa-forward"></i>
                         </button>
-                    </div>
-                    <div *ngFor="let k of p.formKey">
-                        site{{p.programId}}-graph-{{k}}
-                        <div id="site{{p.programId}}-graph-{{k}}" ></div>
+                    </div> -->
+                    <div *ngFor="let k of p.keys; index as i">
+                        <!-- <div id="site{{p.programId}}-graph-{{k}}" [ngClass]="currentGraph === i ? '' : 'graph-hidden'"></div> -->
+                        <div id="site{{p.programId}}-graph-{{k}}"></div>
                     </div>
                 </div>
             </div>
 
             <div class="row">
                 <div [ngClass]="col-lg-12" class="dashboard-map" >
-                    <div class="col-lg-12" id="dashboardMap" [ngClass]="{'largeMap': showMapLarge}"></div>
-                    <div class="dashboard-map-switch">
+                    <div class="col-lg-12" id="dashboardMap"></div>
+                    <!-- <div class="dashboard-map-switch">
                         <button
                             type="button"
                             class="btn btn-light mr-4 float-right"
@@ -120,7 +124,7 @@
                         <i *ngIf="showMapLarge else elseBlockMap" class="fa fa-arrow-right"></i>
                         <ng-template #elseBlockMap><i class="fa fa-arrow-left"></i></ng-template>
                         </button>
-                    </div>
+                    </div> -->
                     <div class="dashboard-map-legend">
                         <div>Relevé <span><img src="assets/pointer-green.png"></span></div>
                         <div>Import <span><img src="assets/pointer-orange.png"></span></div>

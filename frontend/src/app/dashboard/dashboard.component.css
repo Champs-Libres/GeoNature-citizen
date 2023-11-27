@@ -28,9 +28,10 @@ div.dashboard-program-header {
     justify-content: space-between;
 }
 
-div#dashboardMap {
+div.dashboard-map-container {
     height: 100%;
     min-height: 500px;
+    width: 900px;
 }
 
 div.largeMap {

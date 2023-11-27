@@ -19,6 +19,11 @@ interface CountByKey {
     count: number;
 }
 
+interface DashboardMaps {
+    id: number;
+    lmap: L.Map;
+}
+
 @Component({
     selector: 'app-dashboard',
     templateUrl: './dashboard.component.html',
@@ -43,7 +48,7 @@ export class DashboardComponent implements AfterViewInit {
     showMapLarge: boolean;
     nGraphs: number;
     currentGraph: number;
-    dashboardMap: L.Map;
+    dashboardMaps: DashboardMaps[];
     options: any;
     constructor(
         private router: Router,
@@ -53,7 +58,7 @@ export class DashboardComponent implements AfterViewInit {
 
     ngAfterViewInit(): void {
         this.dashboardData = dashboardData;
-
+        this.dashboardMaps = [];
         this.titleService.setTitle(`${AppConfig.appName} - tableau de bord`);
 
         this.nGraphs = 5;
@@ -64,14 +69,29 @@ export class DashboardComponent implements AfterViewInit {
             this.sites = [];
             console.log('this.programs: ', this.programs);
 
-            const mapContainer = document.getElementById('dashboardMap');
-            console.log(mapContainer)
-            if (mapContainer) {
-                this.initMap(conf);
-            }
+            // const mapContainer = document.getElementById('dashboardMap');
+            // console.log(mapContainer)
+            // if (mapContainer) {
+            //     this.initMap(conf);
+            // }
 
             for (const p of this.programs) {
                 console.log('p', p);
+
+
+
+                // if (mapContainer) {
+
+                // setTimeout(() => {
+                //     const mapContainer = document.getElementById(
+                //         `dashboardMap-${p.id_program}`
+                //     );
+                //     console.log('mapcontainer', mapContainer, p.id_program);
+                //     this.initMap(conf, p.id_program);
+
+                // }
+                //     , 1000);
+                // // }
 
                 this.programService
                     .getProgramSites(p.id_program)
@@ -81,7 +101,10 @@ export class DashboardComponent implements AfterViewInit {
                         ).length;
                         console.log('site', site);
                         if (site.features.length > 0) {
-                            //this.addLayerToMap(site);
+                            setTimeout(
+                                () => this.addLayerToMap(site, p.id_program),
+                                5000
+                            );
 
                             const formKey =
                                 site.features[0].properties.program.custom_form
@@ -402,48 +425,61 @@ export class DashboardComponent implements AfterViewInit {
         return results;
     }
 
-    initMap(options: any, LeafletOptions: any = {}): void {
+    initMap(options: any, programId: number, LeafletOptions: any = {}): void {
         this.options = options;
 
-        this.dashboardMap = L.map('dashboardMap', {
+        const dashboardMap = L.map(`dashboardMap-${programId}`, {
             layers: [this.options.DEFAULT_BASE_MAP()],
             ...LeafletOptions,
         });
 
-        this.dashboardMap.zoomControl.setPosition(
+        dashboardMap.zoomControl.setPosition(
             this.options.ZOOM_CONTROL_POSITION
         );
 
         L.control
             .scale({ position: this.options.SCALE_CONTROL_POSITION })
-            .addTo(this.dashboardMap);
+            .addTo(dashboardMap);
 
         L.control
             .layers(this.options.BASE_LAYERS, null, {
                 collapsed: this.options.BASE_LAYER_CONTROL_INIT_COLLAPSED,
                 position: this.options.BASE_LAYER_CONTROL_POSITION,
             })
-            .addTo(this.dashboardMap);
+            .addTo(dashboardMap);
 
-        this.showMapLarge = false;
+        this.dashboardMaps.push({
+            id: programId,
+            lmap: dashboardMap,
+        });
+        // this.showMapLarge = false;
     }
 
-    addProgramLayer(features: FeatureCollection): void {
-        const programLayer = L.geoJSON(features, {
-            style: (_feature) => this.options.PROGRAM_AREA_STYLE(_feature),
-        }).addTo(this.dashboardMap);
-        const programBounds = programLayer.getBounds();
-        this.dashboardMap.fitBounds(programBounds);
-    }
+    // addProgramLayer(features: FeatureCollection): void {
+    //     const programLayer = L.geoJSON(features, {
+    //         style: (_feature) => this.options.PROGRAM_AREA_STYLE(_feature),
+    //     }).addTo(this.dashboardMap);
+    //     const programBounds = programLayer.getBounds();
+    //     this.dashboardMap.fitBounds(programBounds);
+    // }
 
-    addLayerToMap(features: FeatureCollection): void {
+    addLayerToMap(features: FeatureCollection, programId: number): void {
+
+        const mapContainer = document.getElementById(
+            `dashboardMap-${programId}`
+        );
+        console.log('mapcontainer in addlayertomap', mapContainer, programId);
+        this.initMap(conf, programId);
+
+
         const layerOptions = {
             onEachFeature: (feature, layer) => {
                 const popupContent = this.getPopupContent(feature);
                 layer.bindPopup(popupContent);
             },
         };
-        console.log(features);
+        console.log('features in addLayerToMap', features);
+        console.log('dashboardMap', this.dashboardMaps);
         const geometryType = features.features[0].geometry.type.toUpperCase();
         switch (geometryType) {
             case 'POINT':
@@ -459,7 +495,7 @@ export class DashboardComponent implements AfterViewInit {
                     },
                 });
                 this.layerPoint = L.geoJSON(features, layerOptions);
-                this.dashboardMap.addLayer(this.layerPoint);
+                this.dashboardMaps.find(m => m.id === programId).lmap.addLayer(this.layerPoint);
                 this.showLayerPoint = true;
                 break;
 
@@ -471,7 +507,7 @@ export class DashboardComponent implements AfterViewInit {
                             : { color: '#11aa9e' },
                 });
                 this.layerLine = L.geoJSON(features, layerOptions);
-                this.dashboardMap.addLayer(this.layerLine);
+                this.dashboardMaps.find(m => m.id === programId).lmap.addLayer(this.layerLine);
                 this.showLayerLine = true;
                 break;
 
@@ -483,12 +519,12 @@ export class DashboardComponent implements AfterViewInit {
                             : { color: '#11aa25' },
                 });
                 this.layerPolygon = L.geoJSON(features, layerOptions);
-                this.dashboardMap.addLayer(this.layerPolygon);
+                this.dashboardMaps.find(m => m.id === programId).lmap.addLayer(this.layerPolygon);
                 this.showLayerPolygon = true;
                 break;
         }
 
-        this.dashboardMap.setView(
+        this.dashboardMaps.find(m => m.id === programId).lmap.setView(
             [this.dashboardData.base.lat, this.dashboardData.base.lon],
             11
         );
@@ -509,45 +545,45 @@ export class DashboardComponent implements AfterViewInit {
     }
 
     togglePointLayer(): void {
-        if (this.showLayerPoint) {
-            this.dashboardMap.removeLayer(this.layerPoint);
-            this.showLayerPoint = false;
-        } else {
-            this.dashboardMap.addLayer(this.layerPoint);
-            this.showLayerPoint = true;
-        }
+        // if (this.showLayerPoint) {
+        //     this.dashboardMap.removeLayer(this.layerPoint);
+        //     this.showLayerPoint = false;
+        // } else {
+        //     this.dashboardMap.addLayer(this.layerPoint);
+        //     this.showLayerPoint = true;
+        // }
     }
 
     toggleLineLayer(): void {
-        if (this.showLayerLine) {
-            this.dashboardMap.removeLayer(this.layerLine);
-            this.showLayerLine = false;
-        } else {
-            this.dashboardMap.addLayer(this.layerLine);
-            this.showLayerLine = true;
-        }
+        // if (this.showLayerLine) {
+        //     this.dashboardMap.removeLayer(this.layerLine);
+        //     this.showLayerLine = false;
+        // } else {
+        //     this.dashboardMap.addLayer(this.layerLine);
+        //     this.showLayerLine = true;
+        // }
     }
 
     togglePolygonLayer(): void {
-        if (this.showLayerPolygon) {
-            this.dashboardMap.removeLayer(this.layerPolygon);
-            this.showLayerPolygon = false;
-        } else {
-            this.dashboardMap.addLayer(this.layerPolygon);
-            this.showLayerPolygon = true;
-        }
+        // if (this.showLayerPolygon) {
+        //     this.dashboardMap.removeLayer(this.layerPolygon);
+        //     this.showLayerPolygon = false;
+        // } else {
+        //     this.dashboardMap.addLayer(this.layerPolygon);
+        //     this.showLayerPolygon = true;
+        // }
     }
 
-    toggleMapLarge(): void {
-        setTimeout(() => {
-            this.dashboardMap.invalidateSize();
-        }, 400);
-        if (this.showMapLarge) {
-            this.showMapLarge = false;
-        } else {
-            this.showMapLarge = true;
-        }
-    }
+    // toggleMapLarge(): void {
+    //     setTimeout(() => {
+    //         this.dashboardMap.invalidateSize();
+    //     }, 400);
+    //     if (this.showMapLarge) {
+    //         this.showMapLarge = false;
+    //     } else {
+    //         this.showMapLarge = true;
+    //     }
+    // }
 
     toggleGraph(): void {
         if (this.currentGraph === this.nGraphs) {
@@ -565,9 +601,9 @@ export class DashboardComponent implements AfterViewInit {
             d.setAttribute('open', 'true');
         }
         this.showMapLarge = true;
-        setTimeout(() => {
-            this.dashboardMap.invalidateSize();
-        }, 400);
+        // setTimeout(() => {
+        //     this.dashboardMap.invalidateSize();
+        // }, 400);
         setTimeout(() => {
             window.print();
         }, 400);

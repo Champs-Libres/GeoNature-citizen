@@ -84,21 +84,26 @@ export class DashboardComponent implements AfterViewInit {
                             site.features[0].properties.program.custom_form.json_schema.schema.properties;
                         console.log(formKey);
 
+                        const countByKey = {};
+                        for (const k in formKey) {
+                            if (formKey[k].type === 'string') {
+                                countByKey[k] = this.countVisitsDataByKey(k, site);
+                            }
+                        }
+
                         Object.assign(site, {
                             title: p.title,
                             programId: p.id_program,
                             geometryType: p.geometry_type,
                             countImport: countImport,
                             sumLineLength: this.computeTotalLength(site),
+                            sumArea: this.computeTotalArea(site),
                             formKey: Object.keys(formKey),
-                            // especesTable: this.countVisitsDataByKey(
-                            //     'espece',
-                            //     this.sitePoint
-                            // ),
+                            countByKey: countByKey,
                         });
                         this.sites.push(site);
                         console.log('this.sites:', this.sites);
-                        let ii = 1;
+
                         for (const k in formKey) {
                             if (formKey[k].type === 'integer') {
                                 console.log(
@@ -115,7 +120,6 @@ export class DashboardComponent implements AfterViewInit {
                                         ),
                                     100
                                 );
-                                ii = ii + 1;
                             }
                             if (formKey[k].type === 'string') {
                                 console.log(
@@ -132,7 +136,6 @@ export class DashboardComponent implements AfterViewInit {
                                         ),
                                     100
                                 );
-                                ii = ii + 1;
                             }
                         }
                     });

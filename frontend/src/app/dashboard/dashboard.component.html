@@ -74,25 +74,20 @@
                         <div class="">{{ p.sumLineLength.toFixed(2) }} km</div>
                     </div>
 
-
-                    <!-- <div *ngIf="sitePoint">
-                        <div class="">{{ sitePoint.count }} sites répertoriés</div>
-                        <div class="">dont {{ sitePoint.countImport }} importés</div>
-                        <div class="">{{ sitePoint.especesTable.length }} espèces différentes</div>
+                    <div *ngIf="p.geometryType === 'polygone'">
+                        programme polygone:
+                        <div class="">{{ p.sumArea.toFixed(2) }} ha</div>
                     </div>
 
-                    <div *ngIf="siteLine">
-                        <div class="">{{ siteLine.count }} sites répertoriés</div>
-                        <div class="">dont {{ siteLine.countImport }} importées</div>
-                        <div class="">{{ siteLine.sumLineLength.toFixed(2) }} km</div>
-                        <div class="">{{ siteLine.especesTable.length }} espèces différentes</div>
+                    <div *ngFor="let k of p.formKey">
+                        <div id="countByKey-{{k}}" >
+                            <div *ngFor="let v of p.countByKey[k]">
+                                {{ v }}
+                                {{ v.name }}
+                                {{ v.count }}
+                            </div>
+                        </div>
                     </div>
-
-                    <div *ngIf="sitePolygon">
-                        <div class="">{{ sitePolygon.count }} sites répertoriés</div>
-                        <div class="">dont {{ sitePolygon.countImport }} importées</div>
-                        <div *ngIf="sitePolygon.sumArea" class="">{{ sitePolygon.sumArea.toFixed(2) }} ha</div>
-                    </div> -->
                 </div>
 
                 <div class="col-lg-6 dashboard-program-graph">
@@ -106,7 +101,7 @@
                             <i class="fa fa-forward"></i>
                         </button>
                     </div>
-                    <div *ngFor="let k of p.formKey; index as i">
+                    <div *ngFor="let k of p.formKey">
                         site{{p.programId}}-graph-{{k}}
                         <div id="site{{p.programId}}-graph-{{k}}" ></div>
                     </div>

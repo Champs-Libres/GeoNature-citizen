@@ -2,12 +2,15 @@ import * as L from 'leaflet';
 import { AfterViewInit, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AppConfig } from '../../conf/app.config';
+import { MainConfig } from '../../conf/main.config';
 import { Title } from '@angular/platform-browser';
 import { GncProgramsService } from '../api/gnc-programs.service';
 import { FeatureCollection, Geometry, Feature, Polygon, Position } from 'geojson';
 import { Program } from '../programs/programs.models';
 import { dashboardData, dashboardDataType } from '../../conf/dashboard.config';
 import { conf } from '../programs/base/map/map.component';
+
+import { HttpClient } from '@angular/common/http';
 import Plotly from "plotly.js/dist/plotly";
 
 interface ExtraFeatureCollection extends FeatureCollection {
@@ -45,15 +48,16 @@ export class DashboardComponent implements AfterViewInit {
     showLayerPoint: boolean;
     showLayerLine: boolean;
     showLayerPolygon: boolean;
-    showMapLarge: boolean;
-    nGraphs: number;
-    currentGraph: number;
+    // nGraphs: number;
+    // currentGraph: number;
     dashboardMaps: DashboardMaps[];
     options: any;
+
     constructor(
         private router: Router,
         private titleService: Title,
-        private programService: GncProgramsService
+        private programService: GncProgramsService,
+        private http: HttpClient
     ) {}
 
     ngAfterViewInit(): void {
@@ -61,38 +65,15 @@ export class DashboardComponent implements AfterViewInit {
         this.dashboardMaps = [];
         this.titleService.setTitle(`${AppConfig.appName} - tableau de bord`);
 
-        this.nGraphs = 5;
-        this.currentGraph = 1;
+        // this.nGraphs = 5;
+        // this.currentGraph = 1;
 
         this.programService.getAllPrograms().subscribe((programs) => {
             this.programs = programs;
             this.sites = [];
             console.log('this.programs: ', this.programs);
 
-            // const mapContainer = document.getElementById('dashboardMap');
-            // console.log(mapContainer)
-            // if (mapContainer) {
-            //     this.initMap(conf);
-            // }
-
             for (const p of this.programs) {
-                console.log('p', p);
-
-
-
-                // if (mapContainer) {
-
-                // setTimeout(() => {
-                //     const mapContainer = document.getElementById(
-                //         `dashboardMap-${p.id_program}`
-                //     );
-                //     console.log('mapcontainer', mapContainer, p.id_program);
-                //     this.initMap(conf, p.id_program);
-
-                // }
-                //     , 1000);
-                // // }
-
                 this.programService
                     .getProgramSites(p.id_program)
                     .subscribe((site) => {
@@ -132,7 +113,6 @@ export class DashboardComponent implements AfterViewInit {
                                 countByKey: countByKey,
                             });
                             this.sites.push(site);
-                            console.log('this.sites:', this.sites);
 
                             for (const k in formKey) {
                                 if (formKey[k].type === 'integer') {
@@ -429,7 +409,8 @@ export class DashboardComponent implements AfterViewInit {
         this.options = options;
 
         const dashboardMap = L.map(`dashboardMap-${programId}`, {
-            layers: [this.options.DEFAULT_BASE_MAP()],
+            //layers: [this.options.DEFAULT_BASE_MAP()],
+            layers: [() => conf.BASE_LAYERS[MainConfig['DEFAULT_PROVIDER']]],
             ...LeafletOptions,
         });
 
@@ -448,20 +429,27 @@ export class DashboardComponent implements AfterViewInit {
             })
             .addTo(dashboardMap);
 
+        this.http
+            .get(`${MainConfig.API_ENDPOINT}/programs/${programId}`)
+            .subscribe((result) => {
+                const programFeature = result as FeatureCollection;
+                console.log('program', result);
+                this.addProgramLayer(programFeature, dashboardMap);
+            });
+
         this.dashboardMaps.push({
             id: programId,
             lmap: dashboardMap,
         });
-        // this.showMapLarge = false;
     }
 
-    // addProgramLayer(features: FeatureCollection): void {
-    //     const programLayer = L.geoJSON(features, {
-    //         style: (_feature) => this.options.PROGRAM_AREA_STYLE(_feature),
-    //     }).addTo(this.dashboardMap);
-    //     const programBounds = programLayer.getBounds();
-    //     this.dashboardMap.fitBounds(programBounds);
-    // }
+    addProgramLayer(features: FeatureCollection, lmap: L.Map): void {
+        const programLayer = L.geoJSON(features, {
+            style: (_feature) => this.options.PROGRAM_AREA_STYLE(_feature),
+        }).addTo(lmap);
+        const programBounds = programLayer.getBounds();
+        lmap.fitBounds(programBounds);
+    }
 
     addLayerToMap(features: FeatureCollection, programId: number): void {
 
@@ -471,15 +459,13 @@ export class DashboardComponent implements AfterViewInit {
         console.log('mapcontainer in addlayertomap', mapContainer, programId);
         this.initMap(conf, programId);
 
-
         const layerOptions = {
             onEachFeature: (feature, layer) => {
                 const popupContent = this.getPopupContent(feature);
                 layer.bindPopup(popupContent);
             },
         };
-        console.log('features in addLayerToMap', features);
-        console.log('dashboardMap', this.dashboardMaps);
+
         const geometryType = features.features[0].geometry.type.toUpperCase();
         switch (geometryType) {
             case 'POINT':
@@ -574,24 +560,13 @@ export class DashboardComponent implements AfterViewInit {
         // }
     }
 
-    // toggleMapLarge(): void {
-    //     setTimeout(() => {
-    //         this.dashboardMap.invalidateSize();
-    //     }, 400);
-    //     if (this.showMapLarge) {
-    //         this.showMapLarge = false;
+    // toggleGraph(): void {
+    //     if (this.currentGraph === this.nGraphs) {
+    //         this.currentGraph = 1;
     //     } else {
-    //         this.showMapLarge = true;
+    //         this.currentGraph = this.currentGraph + 1;
     //     }
     // }
-
-    toggleGraph(): void {
-        if (this.currentGraph === this.nGraphs) {
-            this.currentGraph = 1;
-        } else {
-            this.currentGraph = this.currentGraph + 1;
-        }
-    }
 
     print(): void {
         // open all the details html tag
@@ -600,7 +575,6 @@ export class DashboardComponent implements AfterViewInit {
             const d = detailsTags[i];
             d.setAttribute('open', 'true');
         }
-        this.showMapLarge = true;
         // setTimeout(() => {
         //     this.dashboardMap.invalidateSize();
         // }, 400);

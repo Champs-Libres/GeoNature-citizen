@@ -57,7 +57,7 @@
             <h2 class="mt-4">Les programmes</h2>
         </div>
 
-        <div *ngFor="let p of sites" class="col-lg-12">
+        <div *ngFor="let p of sites" class="col-lg-12 mt-5">
 
             <div class="row">
                 <h3>{{ p.title }}</h3>
@@ -105,14 +105,14 @@
                     </div> -->
                     <div *ngFor="let k of p.keys; index as i">
                         <!-- <div id="site{{p.programId}}-graph-{{k}}" [ngClass]="currentGraph === i ? '' : 'graph-hidden'"></div> -->
-                        <div id="site{{p.programId}}-graph-{{k}}"></div>
+                        <div class="mb-3" id="site{{p.programId}}-graph-{{k}}"></div>
                     </div>
                 </div>
             </div>
 
             <div class="row">
                 <div [ngClass]="col-lg-12" class="dashboard-map" >
-                    <div class="col-lg-12 dashboard-map-container" id="dashboardMap-{{p.programId}}"></div>
+                    <div class="col-lg-12 dashboard-map-container mt-4" id="dashboardMap-{{p.programId}}"></div>
                     <!-- <div class="dashboard-map-switch">
                         <button
                             type="button"
@@ -133,7 +133,7 @@
 
     </div>
 
-    <div class="col-lg-12 dashboard-section">
+    <!-- <div class="col-lg-12 dashboard-section">
         <h2 class="mt-4">Biomasse</h2>
         <div class="row dashboard-biomasse">
             <div class="dashboard-biomasse-method-1 col-lg-6">
@@ -168,7 +168,7 @@
                 <p>Actuellement, les ressources enregistrées permettrait de chauffer {{ ((siteLine.sumLineLength * 10 * 12) / 30).toFixed() }} habitations (150 m²).</p>
             </div>
         </div>
-    </div>
+    </div> -->
 </div>
 
 

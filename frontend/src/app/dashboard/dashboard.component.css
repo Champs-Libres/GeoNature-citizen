@@ -62,8 +62,8 @@ div.dashboard-map-switch {
 
 div.dashboard-map-legend {
     position: absolute;
-    bottom: 40px;
-    left: 20px;
+    bottom: 0px;
+    right: 60px;
     font-size: 0.9em;
     z-index: 500;
     background-color: white;

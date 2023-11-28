@@ -318,7 +318,6 @@ export class DashboardComponent implements AfterViewInit {
      */
     computeTotalArea(featureCollection: FeatureCollection): number {
         let total = 0;
-        console.log(featureCollection.features);
 
         featureCollection.features.forEach((f) => {
             const geom = f.geometry as Polygon;
@@ -426,7 +425,6 @@ export class DashboardComponent implements AfterViewInit {
             .get(`${MainConfig.API_ENDPOINT}/programs/${programId}`)
             .subscribe((result) => {
                 const programFeature = result as FeatureCollection;
-                console.log('program', result);
                 this.addProgramLayer(programFeature, dashboardMap);
             });
 
@@ -449,7 +447,6 @@ export class DashboardComponent implements AfterViewInit {
         const mapContainer = document.getElementById(
             `dashboardMap-${programId}`
         );
-        console.log('mapcontainer in addlayertomap', mapContainer, programId);
         this.initMap(conf, programId);
 
         const layerOptions = {

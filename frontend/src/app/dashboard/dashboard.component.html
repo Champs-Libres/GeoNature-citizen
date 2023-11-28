@@ -3,7 +3,7 @@
 <div class="container">
     <div class="row">
         <div class="col-lg-12 dashboard-header">
-            <h1 class="mt-4">{{ dashboardData?.base.name }}</h1>
+            <h1 class="mt-4">Tableau de bord</h1>
             <div class='dashboard-print'>
                 <button
                     type="button"
@@ -17,6 +17,87 @@
     </div>
 
     <div class="row">
+        <div class="col-lg-12">
+            <h2 class="mt-4">Les programmes</h2>
+            <p>Attention, les données présentées ici sont des données brutes, non vérifiées, qui peuvent mener à de mauvaises interprétations.</p>
+        </div>
+
+        <div *ngFor="let p of sites" class="col-lg-12">
+
+            <div class="mt-5">
+                <h3><a href="programs/{{p.programId}}/sites">#{{p.programId}} {{ p.title }}</a></h3>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-6 mt-3 dashboard-program-info">
+
+                    <div class="font-weight-bold">{{ p.count }} sites répertoriés</div>
+                    <div class="font-weight-bold">dont {{ p.countImport }} importés</div>
+
+                    <div *ngIf="p.geometryType === 'ligne'">
+                        <div class="">Longueur cartographiée: {{ p.sumLineLength.toFixed(2) }} km</div>
+                    </div>
+
+                    <div *ngIf="p.geometryType === 'polygone'">
+                        <div class="">Surface cartographiée: {{ p.sumArea.toFixed(2) }} ha</div>
+                    </div>
+
+                    <div *ngFor="let k of p.keys">
+                        <div *ngIf="p.formKey[k].type === 'string'" id="countByKey-{{k}}" >
+                            <h4 class="mt-4">{{ p.formKey[k].title }}</h4>
+                            <table class="table table-striped">
+                                <tbody>
+                                    <tr *ngFor="let v of p.countByKey[k]">
+                                        <td>{{ v.name }}</td>
+                                        <td>{{ v.count }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 mt-5 dashboard-program-graph">
+                    <!-- <div class="dashboard-toggle-graph p-2">
+                        <button
+                            type="button"
+                            class="btn btn-light float-left"
+                            title="changer de graphique"
+                            (click)="toggleGraph()"
+                        >
+                            <i class="fa fa-forward"></i>
+                        </button>
+                    </div> -->
+                    <div *ngFor="let k of p.keys; index as i">
+                        <!-- <div id="site{{p.programId}}-graph-{{k}}" [ngClass]="currentGraph === i ? '' : 'graph-hidden'"></div> -->
+                        <div class="mb-3" id="site{{p.programId}}-graph-{{k}}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row d-flex justify-content-center">
+                <div [ngClass]="col-lg-12" class="dashboard-map" >
+                    <div class="col-lg-12 dashboard-map-container mt-4 mb-5" id="dashboardMap-{{p.programId}}"></div>
+                    <!-- <div class="dashboard-map-switch">
+                        <button
+                            type="button"
+                            class="btn btn-light mr-4 float-right"
+                            (click)="toggleMapLarge()"
+                        >
+                        <i *ngIf="showMapLarge else elseBlockMap" class="fa fa-arrow-right"></i>
+                        <ng-template #elseBlockMap><i class="fa fa-arrow-left"></i></ng-template>
+                        </button>
+                    </div> -->
+                    <div class="dashboard-map-legend">
+                        <div>Relevé <span><img src="assets/pointer-green.png"></span></div>
+                        <div>Import <span><img src="assets/pointer-orange.png"></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- <div class="row">
         <div class="col-lg-12 dashboard-section">
             <h2 class="mt-4">Données de base</h2>
             <div class="row dashboard-base">
@@ -50,88 +131,7 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="row">
-        <div class="col-lg-12">
-            <h2 class="mt-4">Les programmes</h2>
-        </div>
-
-        <div *ngFor="let p of sites" class="col-lg-12 mt-5">
-
-            <div class="row">
-                <h3>{{ p.title }}</h3>
-            </div>
-
-            <div class="row">
-                <div class="col-lg-6 dashboard-program-info">
-
-                    <div class="">{{ p.count }} sites répertoriés</div>
-                    <div class="">dont {{ p.countImport }} importés</div>
-
-                    <div *ngIf="p.geometryType === 'ligne'">
-                        <div class="">Longueur cartographiée: {{ p.sumLineLength.toFixed(2) }} km</div>
-                    </div>
-
-                    <div *ngIf="p.geometryType === 'polygone'">
-                        <div class="">Surface cartographiée: {{ p.sumArea.toFixed(2) }} ha</div>
-                    </div>
-
-                    <div *ngFor="let k of p.keys">
-                        <div id="countByKey-{{k}}" >
-                            <h4 class="mt-4">{{ p.formKey[k].title }}</h4>
-                            <table class="table table-striped">
-                                <tbody>
-                                    <tr *ngFor="let v of p.countByKey[k]">
-                                        <td>{{ v.name }}</td>
-                                        <td>{{ v.count }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-6 dashboard-program-graph">
-                    <!-- <div class="dashboard-toggle-graph p-2">
-                        <button
-                            type="button"
-                            class="btn btn-light float-left"
-                            title="changer de graphique"
-                            (click)="toggleGraph()"
-                        >
-                            <i class="fa fa-forward"></i>
-                        </button>
-                    </div> -->
-                    <div *ngFor="let k of p.keys; index as i">
-                        <!-- <div id="site{{p.programId}}-graph-{{k}}" [ngClass]="currentGraph === i ? '' : 'graph-hidden'"></div> -->
-                        <div class="mb-3" id="site{{p.programId}}-graph-{{k}}"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div [ngClass]="col-lg-12" class="dashboard-map" >
-                    <div class="col-lg-12 dashboard-map-container mt-4" id="dashboardMap-{{p.programId}}"></div>
-                    <!-- <div class="dashboard-map-switch">
-                        <button
-                            type="button"
-                            class="btn btn-light mr-4 float-right"
-                            (click)="toggleMapLarge()"
-                        >
-                        <i *ngIf="showMapLarge else elseBlockMap" class="fa fa-arrow-right"></i>
-                        <ng-template #elseBlockMap><i class="fa fa-arrow-left"></i></ng-template>
-                        </button>
-                    </div> -->
-                    <div class="dashboard-map-legend">
-                        <div>Relevé <span><img src="assets/pointer-green.png"></span></div>
-                        <div>Import <span><img src="assets/pointer-orange.png"></span></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
+    </div> -->
 
     <!-- <div class="col-lg-12 dashboard-section">
         <h2 class="mt-4">Biomasse</h2>

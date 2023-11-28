@@ -33,6 +33,11 @@ div.dashboard-map-container {
     min-height: 500px;
     width: 1040px;
 }
+@media screen and (max-width: 991px) {
+    div.dashboard-map-container {
+        width: 700px;
+    }
+}
 
 div.largeMap {
     height: 800px!important;

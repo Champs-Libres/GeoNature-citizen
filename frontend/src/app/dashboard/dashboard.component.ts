@@ -408,11 +408,11 @@ export class DashboardComponent implements AfterViewInit {
     initMap(options: any, programId: number, LeafletOptions: any = {}): void {
         this.options = options;
 
-        const dashboardMap = L.map(`dashboardMap-${programId}`, {
-            //layers: [this.options.DEFAULT_BASE_MAP()],
-            layers: [() => conf.BASE_LAYERS[MainConfig['DEFAULT_PROVIDER']]],
-            ...LeafletOptions,
-        });
+        const dashboardMap = L.map(`dashboardMap-${programId}`)
+
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(dashboardMap);
 
         dashboardMap.zoomControl.setPosition(
             this.options.ZOOM_CONTROL_POSITION
@@ -420,13 +420,6 @@ export class DashboardComponent implements AfterViewInit {
 
         L.control
             .scale({ position: this.options.SCALE_CONTROL_POSITION })
-            .addTo(dashboardMap);
-
-        L.control
-            .layers(this.options.BASE_LAYERS, null, {
-                collapsed: this.options.BASE_LAYER_CONTROL_INIT_COLLAPSED,
-                position: this.options.BASE_LAYER_CONTROL_POSITION,
-            })
             .addTo(dashboardMap);
 
         this.http

@@ -456,9 +456,9 @@ export class DashboardComponent implements AfterViewInit {
             },
         };
 
-        const geometryType = features.features[0].geometry.type.toUpperCase();
+        const geometryType = features.features[0].geometry.type;
         switch (geometryType) {
-            case 'POINT':
+            case 'Point':
             default:
                 Object.assign(layerOptions, {
                     pointToLayer: (f: Feature, latlng): L.Marker => {
@@ -475,7 +475,7 @@ export class DashboardComponent implements AfterViewInit {
                 this.showLayerPoint = true;
                 break;
 
-            case 'LINESTRING':
+            case 'LineString':
                 Object.assign(layerOptions, {
                     style: (f: Feature) =>
                         this.isImported(f)
@@ -487,7 +487,7 @@ export class DashboardComponent implements AfterViewInit {
                 this.showLayerLine = true;
                 break;
 
-            case 'POLYGON':
+            case 'Polygon':
                 Object.assign(layerOptions, {
                     style: (f: Feature) =>
                         this.isImported(f)

@@ -314,9 +314,8 @@ export abstract class BaseMapComponent implements OnChanges {
 
                 const geometryType =
                     this.program.features[0].properties.geometry_type;
-
-                switch (geometryType){
-                    case 'LINESTRING':
+                switch (geometryType) {
+                    case 'ligne':
                         this.observationMap.on('mousemove', (e: L.LeafletMouseEvent) => {
                             if (polyline) {
                                 const lastDrawPoint: L.LatLng = polyline.getLatLngs()[polyline.getLatLngs().length - 1] as L.LatLng;
@@ -324,7 +323,7 @@ export abstract class BaseMapComponent implements OnChanges {
                             }
                         });
                         break;
-                    case 'POLYGON':
+                    case 'polygone':
                         this.observationMap.on('mousemove', (e: L.LeafletMouseEvent) => {
                             if (polygon) {
                                 const coordinates = polygon.getLatLngs() as L.LatLng[][];
@@ -360,7 +359,7 @@ export abstract class BaseMapComponent implements OnChanges {
                     }
 
                     switch (geometryType) {
-                        case 'POINT':
+                        case 'point':
                         default:
                             if (this.newObsMarker !== null) {
                                 this.observationMap.removeLayer(this.newObsMarker);
@@ -381,7 +380,7 @@ export abstract class BaseMapComponent implements OnChanges {
                             this.onClick.emit(coords);
                             break;
 
-                        case 'LINESTRING':
+                        case 'ligne':
                             lineDraw.setLatLngs([]);
                             if (polyline === null) {
                                 if (previousPolyline !== null){
@@ -408,7 +407,7 @@ export abstract class BaseMapComponent implements OnChanges {
                             }
                             break;
 
-                        case 'POLYGON':
+                        case 'polygone':
                             lineDraw.setLatLngs([]);
                             if (polygon === null){
                                 polygon = L.polygon([e.latlng], {
@@ -476,13 +475,13 @@ export abstract class BaseMapComponent implements OnChanges {
 
             let pointFeatures: FeatureCollection;
             switch (geometryType){
-                case 'POINT':
+                case 'point':
                 default:
                     pointFeatures = this.features;
                     break;
 
-                case 'LINESTRING':
-                case 'POLYGON':
+                case 'ligne':
+                case 'polygone':
                     this.observationMap.addLayer(
                         L.geoJSON(this.features, {
                             style: function (_feature) {

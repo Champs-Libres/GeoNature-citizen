@@ -153,14 +153,14 @@ export class SiteDetailComponent
         const geometryType = this.site.properties.program.geometry_type;
 
         switch (geometryType) {
-            case 'POINT':
+            case 'point':
             default:
                 coord = this.site.geometry.coordinates;
                 latLng = L.latLng(coord[1], coord[0]);
                 L.marker(latLng, { icon: markerIcon }).addTo(map);
                 break;
 
-            case 'LINESTRING':
+            case 'ligne':
                 coord = this.site.geometry.coordinates[0];
                 latLng = L.latLng(coord[1], coord[0]);
                 const lineLatLng = this.site.geometry.coordinates.map(
@@ -171,7 +171,7 @@ export class SiteDetailComponent
                 }).addTo(map);
                 break;
 
-            case 'POLYGON':
+            case 'polygone':
                 coord = this.site.geometry.coordinates[0][0];
                 latLng = L.latLng(coord[1], coord[0]);
                 const polygonLatLng = [this.site.geometry.coordinates[0].map(

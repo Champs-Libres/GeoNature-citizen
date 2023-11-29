@@ -79,7 +79,7 @@ export class SiteFormComponent implements AfterViewInit {
         if (this.data.updateData) {
             this.patchForm(this.data.updateData);
         }
- 
+
         this.mapService.coordsChange.subscribe((value) => {
             this.coords = value;
 
@@ -172,6 +172,7 @@ export class SiteFormComponent implements AfterViewInit {
                 formMap.setMaxBounds(maxBounds);
 
                 const geometryType = this.program.features[0].properties.geometry_type;
+
                 let myMarker = null;
                 let myLine = null;
                 let myPolygon = null;
@@ -179,7 +180,7 @@ export class SiteFormComponent implements AfterViewInit {
 
                 if (this.coords || this.line || this.polygon) { // Set initial observation marker from main map if already spotted
                     switch (geometryType) {
-                        case 'POINT':
+                        case 'point':
                         default:
                             geo_coords = <Point>{
                                 type: 'Point',
@@ -191,7 +192,7 @@ export class SiteFormComponent implements AfterViewInit {
                             }).addTo(formMap);
                             break;
 
-                        case 'LINESTRING':
+                        case 'ligne':
                             const coordinates = this.line.getLatLngs() as L.LatLng[];
                             const positions: Position[] = coordinates.map(c => [c.lng, c.lat])
                             geo_coords = <LineString>{
@@ -204,7 +205,7 @@ export class SiteFormComponent implements AfterViewInit {
                             }).addTo(formMap);
                             break;
 
-                        case 'POLYGON':
+                        case 'polygone':
                             const coordsPolygon = this.polygon.getLatLngs() as L.LatLng[][];
                             const positionsPolygon = [coordsPolygon[0].map(c => [c.lng, c.lat])] as Position[][];
                             geo_coords = <Polygon>{

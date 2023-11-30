@@ -36,12 +36,6 @@ export class DashboardComponent implements AfterViewInit {
     dashboardData: dashboardDataType;
     programs: Program[];
     sites: ExtraFeatureCollection[];
-    sitePoint: ExtraFeatureCollection;
-    siteLine: ExtraFeatureCollection;
-    sitePolygon: ExtraFeatureCollection;
-    programPoint: FeatureCollection;
-    programLine: FeatureCollection;
-    programPolygon: FeatureCollection;
     layerPoint: L.Layer;
     layerLine: L.Layer;
     layerPolygon: L.Layer;
@@ -67,10 +61,11 @@ export class DashboardComponent implements AfterViewInit {
 
         // this.nGraphs = 5;
         // this.currentGraph = 1;
+        const sites = [];
 
         this.programService.getAllPrograms().subscribe((programs) => {
-            this.programs = programs;
-            this.sites = [];
+            this.programs = programs.reverse();
+
             console.log('this.programs: ', this.programs);
 
             for (const p of this.programs) {
@@ -112,7 +107,7 @@ export class DashboardComponent implements AfterViewInit {
                                 formKey: formKey,
                                 countByKey: countByKey,
                             });
-                            this.sites.push(site);
+                            sites.push(site);
 
                             for (const k in formKey) {
                                 if (formKey[k].type === 'integer') {
@@ -144,6 +139,11 @@ export class DashboardComponent implements AfterViewInit {
                     });
             }
         });
+        const sortedSites = sites.sort(
+            (a, b) => Number(a.programId) - Number(b.programId) // should work
+        );
+        this.sites = sortedSites;
+        console.log('this.sites', this.sites);
     }
 
     makePieChart(

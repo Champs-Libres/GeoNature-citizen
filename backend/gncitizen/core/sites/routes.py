@@ -633,3 +633,67 @@ def export_sites_xls(user_id):
     except Exception as e:
         current_app.logger.warning("Error: %s", str(e))
         return {"error_message": str(e)}, 400
+
+
+@sites_api.route("programs/export/<int:id>", methods=["GET"])
+def export_all_sites_xls(id):
+    try:
+        sites = SiteModel.query.filter_by(id_program=id).all()
+
+        wb = xlwt.Workbook()
+        ws = wb.add_sheet(f"sites du programme {id}")
+
+        title_style = xlwt.easyxf("font: bold on")
+        date_style = xlwt.easyxf(num_format_str="D/M/YYYY")
+        fields = (
+            {"col_name": "id_site", "getter": lambda s: s.id_site},
+            {"col_name": "Programme", "getter": lambda s: s.program.title},
+            {"col_name": "Type", "getter": lambda s: s.site_type.type},
+            {"col_name": "Nom", "getter": lambda s: s.name},
+            {
+                "col_name": "Date création",
+                "getter": lambda s: s.timestamp_create,
+                "style": date_style,
+            },
+            {"col_name": "Auteur", "getter": lambda s: s.obs_txt},
+            {"col_name": "Evaluation auteur", "getter": lambda s: s.eval if hasattr(s, "eval") else ""},
+        )
+
+        row = 0
+        for col, field in enumerate(fields):
+            ws.write(row, col, field["col_name"], title_style)
+        row += 1
+
+        merged_visits_keys = []
+
+        for site in sites:
+
+            site.formatted_site = format_site(site)
+
+            for col, field in enumerate(fields):
+                args = []
+                if field.get("style"):
+                    args.append(field.get("style"))
+                ws.write(row, col, field["getter"](site), *args)
+
+            merged_visits = get_merged_site_visits(site.id_site)
+
+            for k in merged_visits:
+                if k not in merged_visits_keys:
+                    ws.write(0, len(fields) + len(merged_visits_keys), k, title_style) # write column header
+                    merged_visits_keys.append(k)
+
+                ws.write(row, len(fields) + merged_visits_keys.index(k), merged_visits[k])
+
+            row += 1
+
+        xls_file = io.BytesIO()
+        wb.save(xls_file)
+        output = make_response(xls_file.getvalue())
+        output.headers["Content-Disposition"] = (
+            "attachment; filename=" + f"export_all_sites_program{id}.xls"
+        )
+        output.headers["Content-type"] = "application/xls"
+        return output
+    except Exception as e:
+        return {"error_message": str(e)}, 400

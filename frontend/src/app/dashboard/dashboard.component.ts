@@ -138,12 +138,13 @@ export class DashboardComponent implements AfterViewInit {
                         }
                     });
             }
+
+            const sortedSites = sites.sort(
+                (a, b) => Number(a.programId) - Number(b.programId) // should work
+            );
+            this.sites = sortedSites;
+            console.log('this.sites', this.sites);
         });
-        const sortedSites = sites.sort(
-            (a, b) => Number(a.programId) - Number(b.programId) // should work
-        );
-        this.sites = sortedSites;
-        console.log('this.sites', this.sites);
     }
 
     makePieChart(

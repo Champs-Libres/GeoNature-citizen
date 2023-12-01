@@ -1,7 +1,9 @@
+<script src="https://cdn.plot.ly/plotly-2.24.1.min.js" charset="utf-8"></script>
+
 <div class="container">
     <div class="row">
         <div class="col-lg-12 dashboard-header">
-            <h1 class="mt-4">{{ dashboardData?.base.name }}</h1>
+            <h1 class="mt-4">Tableau de bord</h1>
             <div class='dashboard-print'>
                 <button
                     type="button"
@@ -15,6 +17,90 @@
     </div>
 
     <div class="row">
+        <div class="col-lg-12">
+            <h2 class="mt-4">Les programmes</h2>
+            <p>Attention, les données présentées ici sont des données brutes, non vérifiées, qui peuvent mener à de mauvaises interprétations.</p>
+        </div>
+
+        <div *ngFor="let p of sites" class="row border-bottom">
+            <div class="col-lg-12">
+                <div class="mt-5">
+                    <h3><a href="programs/{{p.programId}}/sites">#{{p.programId}} {{ p.title }}</a></h3>
+                </div>
+
+                <div class="row mb-5">
+                    <div class="col-lg-6 mt-3 dashboard-program-info">
+
+                        <div class="font-weight-bold">{{ p.count }} sites répertoriés</div>
+                        <div class="font-weight-bold">dont {{ p.countImport }} importés</div>
+
+                        <div *ngIf="p.geometryType === 'ligne'">
+                            <div class="">Longueur cartographiée: {{ p.sumLineLength.toFixed(2) }} km</div>
+                            <div class="">Productivité MAP au 100 m pour 10 ans: {{ (p.sumLineLength * 10 * 12).toFixed() }} MAP</div>
+                            <div>Actuellement, les ressources enregistrées permettrait de chauffer {{ ((p.sumLineLength * 10 * 12) / 30).toFixed() }} habitations (150 m²).</div>
+                        </div>
+
+                        <div *ngIf="p.geometryType === 'polygone'">
+                            <div class="">Surface cartographiée: {{ p.sumArea.toFixed(2) }} ha</div>
+                        </div>
+
+                        <div *ngFor="let k of p.keys">
+                            <div *ngIf="p.formKey[k].type === 'string'" id="countByKey-{{k}}" >
+                                <h4 class="mt-4">{{ p.formKey[k].title }}</h4>
+                                <table class="table table-striped">
+                                    <tbody>
+                                        <tr *ngFor="let v of p.countByKey[k]">
+                                            <td>{{ v.name }}</td>
+                                            <td>{{ v.count }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6 mt-5 dashboard-program-graph">
+                        <!-- <div class="dashboard-toggle-graph p-2">
+                            <button
+                                type="button"
+                                class="btn btn-light float-left"
+                                title="changer de graphique"
+                                (click)="toggleGraph()"
+                            >
+                                <i class="fa fa-forward"></i>
+                            </button>
+                        </div> -->
+                        <div *ngFor="let k of p.keys; index as i">
+                            <!-- <div id="site{{p.programId}}-graph-{{k}}" [ngClass]="currentGraph === i ? '' : 'graph-hidden'"></div> -->
+                            <div class="mb-3" id="site{{p.programId}}-graph-{{k}}"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-5 d-flex justify-content-center">
+                    <div [ngClass]="col-lg-12" class="dashboard-map" >
+                        <div class="col-lg-12 dashboard-map-container" id="dashboardMap-{{p.programId}}"></div>
+                        <!-- <div class="dashboard-map-switch">
+                            <button
+                                type="button"
+                                class="btn btn-light mr-4 float-right"
+                                (click)="toggleMapLarge()"
+                            >
+                            <i *ngIf="showMapLarge else elseBlockMap" class="fa fa-arrow-right"></i>
+                            <ng-template #elseBlockMap><i class="fa fa-arrow-left"></i></ng-template>
+                            </button>
+                        </div> -->
+                        <div class="dashboard-map-legend">
+                            <div>Relevé <span><img src="assets/pointer-green.png"></span></div>
+                            <div>Import <span><img src="assets/pointer-orange.png"></span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- <div class="row">
         <div class="col-lg-12 dashboard-section">
             <h2 class="mt-4">Données de base</h2>
             <div class="row dashboard-base">
@@ -48,169 +134,9 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
 
-    <div class="row">
-        <div class="col-lg-12">
-            <h2 class="mt-4">Les programmes</h2>
-        </div>
-
-        <div class="col-lg-12">
-            <div class="row" [ngClass]="{'reverse': showMapLarge, '': !showMapLarge}">
-
-                <!-- <div *ngIf=!showMapLarge class="col-lg-6"> -->
-                <div [ngClass]="{'col-lg-12': showMapLarge, 'col-lg-6': !showMapLarge}" class="col-lg-6 programs">
-                    <div class="dashboard-program border p-4" *ngIf="programPoint">
-                        <div class="dashboard-program-header">
-                            <h3>{{programPoint.features[0].properties.title}}</h3>
-                            <div class="dashboard-toggle-layer">
-                                <button
-                                    type="button"
-                                    class="btn btn-light float-right"
-                                    (click)="togglePointLayer()"
-                                >
-                                <i *ngIf="showLayerPoint else elseBlockPoint" class="fa fa-eye"></i>
-                                <ng-template #elseBlockPoint><i class="fa fa-eye-slash"></i></ng-template>
-                                </button>
-                            </div>
-                        </div>
-                        <div *ngIf="sitePoint">
-                            <div class="">{{ sitePoint.count }} arbres répertoriés</div>
-                            <div class="">dont {{ sitePoint.countImport }} arbres importés</div>
-                            <div class="">{{ sitePoint.especesTable.length }} espèces différentes</div>
-                            <div>
-                                <details>
-                                    <summary class="my-3">
-                                        Liste des espèces répertoriées
-                                    </summary>
-                                    <table class="dashboard-table table">
-                                        <tr *ngFor="let l of sitePoint?.especesTable">
-                                            <td>{{ l.name }}</td>
-                                            <td>{{ l.count }}</td>
-                                        </tr>
-                                    </table>
-                                </details>
-                            </div>
-                            <div>
-                                <details>
-                                    <summary class="my-3">
-                                        Liste des arbres répertoriés
-                                    </summary>
-                                    <ul>
-                                        <li class="mt-2" *ngFor="let s of sitePoint?.features">
-                                            {{ s.properties.name }}
-                                        </li>
-                                    </ul>
-                                </details>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="dashboard-program border p-4" *ngIf="programLine">
-                        <div class="dashboard-program-header">
-                            <h3>{{programLine.features[0].properties.title}}</h3>
-                            <div class="dashboard-toggle-layer">
-                                <button
-                                    type="button"
-                                    class="btn btn-light float-right"
-                                    (click)="toggleLineLayer()"
-                                >
-                                <i *ngIf="showLayerLine else elseBlockLine" class="fa fa-eye"></i>
-                                <ng-template #elseBlockLine><i class="fa fa-eye-slash"></i></ng-template>
-                                </button>
-                            </div>
-                        </div>
-                        <div *ngIf="siteLine">
-                            <div class="">{{ siteLine.count }} haies répertoriées</div>
-                            <div class="">dont {{ siteLine.countImport }} haies importées</div>
-                            <div class="">{{ siteLine.sumLineLength.toFixed(2) }} km de haies</div>
-                            <div class="">{{ siteLine.especesTable.length }} espèces différentes</div>
-                            <div>
-                                <details>
-                                    <summary class="my-3">
-                                        Liste des espèces répertoriées
-                                    </summary>
-                                    <table class="dashboard-table table">
-                                        <tr *ngFor="let l of siteLine?.especesTable">
-                                            <td>{{ l.name }}</td>
-                                            <td>{{ l.count }}</td>
-                                        </tr>
-                                    </table>
-                                </details>
-                            </div>
-                            <div>
-                                <details>
-                                    <summary class="my-3">
-                                        Liste des haies répertoriées
-                                    </summary>
-                                    <ul>
-                                        <li class="mt-2" *ngFor="let s of siteLine?.features">
-                                            {{ s.properties.name }}
-                                        </li>
-                                    </ul>
-                                </details>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="dashboard-program border p-4" *ngIf="programPolygon">
-                        <div class="dashboard-program-header">
-                            <h3>{{programPolygon.features[0].properties.title}}</h3>
-                            <div class="dashboard-toggle-layer">
-                                <button
-                                    type="button"
-                                    class="btn btn-light float-right"
-                                    (click)="togglePolygonLayer()"
-                                >
-                                <i *ngIf="showLayerPolygon else elseBlockPolygon" class="fa fa-eye"></i>
-                                <ng-template #elseBlockPolygon><i class="fa fa-eye-slash"></i></ng-template>
-                                </button>
-                            </div>
-                        </div>
-                        <div *ngIf="sitePolygon">
-                            <div class="">{{ sitePolygon.count }} zones naturelles répertoriées</div>
-                            <div class="">dont {{ sitePolygon.countImport }} zones importées</div>
-                            <div *ngIf="sitePolygon.sumArea" class="">{{ sitePolygon.sumArea.toFixed(2) }} ha</div>
-                            <div>
-                                <details>
-                                    <summary class="my-3">
-                                        Liste des zones répertoriées
-                                    </summary>
-                                    <ul>
-                                        <li class="mt-2" *ngFor="let s of sitePolygon?.features">
-                                            {{ s.properties.name }}
-                                        </li>
-                                    </ul>
-                                </details>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div [ngClass]="{'col-lg-12': showMapLarge, 'col-lg-6': !showMapLarge}" class="dashboard-map" >
-                    <div class="col-lg-12" id="dashboardMap" [ngClass]="{'largeMap': showMapLarge}"></div>
-                    <div class="dashboard-map-switch">
-                        <button
-                            type="button"
-                            class="btn btn-light mr-4 float-right"
-                            (click)="toggleMapLarge()"
-                        >
-                        <i *ngIf="showMapLarge else elseBlockMap" class="fa fa-arrow-right"></i>
-                        <ng-template #elseBlockMap><i class="fa fa-arrow-left"></i></ng-template>
-                        </button>
-                    </div>
-                    <div class="dashboard-map-legend">
-                        <div>Relevé <span><img src="assets/pointer-green.png"></span></div>
-                        <div>Import <span><img src="assets/pointer-orange.png"></span></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="col-lg-12 dashboard-section">
+    <!-- <div class="col-lg-12 dashboard-section">
         <h2 class="mt-4">Biomasse</h2>
         <div class="row dashboard-biomasse">
             <div class="dashboard-biomasse-method-1 col-lg-6">
@@ -245,8 +171,7 @@
                 <p>Actuellement, les ressources enregistrées permettrait de chauffer {{ ((siteLine.sumLineLength * 10 * 12) / 30).toFixed() }} habitations (150 m²).</p>
             </div>
         </div>
-    </div>
-
+    </div> -->
 </div>
 
 

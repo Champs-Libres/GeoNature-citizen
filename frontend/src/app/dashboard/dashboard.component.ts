@@ -2,13 +2,16 @@ import * as L from 'leaflet';
 import { AfterViewInit, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AppConfig } from '../../conf/app.config';
+import { MainConfig } from '../../conf/main.config';
 import { Title } from '@angular/platform-browser';
 import { GncProgramsService } from '../api/gnc-programs.service';
 import { FeatureCollection, Geometry, Feature, Polygon, Position } from 'geojson';
 import { Program } from '../programs/programs.models';
 import { dashboardData, dashboardDataType } from '../../conf/dashboard.config';
 import { conf } from '../programs/base/map/map.component';
-import { MAP_CONFIG } from '../../conf/map.config';
+
+import { HttpClient } from '@angular/common/http';
+import Plotly from "plotly.js/dist/plotly";
 
 interface ExtraFeatureCollection extends FeatureCollection {
     [key: string]: any
@@ -19,6 +22,11 @@ interface CountByKey {
     count: number;
 }
 
+interface DashboardMaps {
+    id: number;
+    lmap: L.Map;
+}
+
 @Component({
     selector: 'app-dashboard',
     templateUrl: './dashboard.component.html',
@@ -27,116 +35,204 @@ interface CountByKey {
 export class DashboardComponent implements AfterViewInit {
     dashboardData: dashboardDataType;
     programs: Program[];
-    sitePoint: ExtraFeatureCollection;
-    siteLine: ExtraFeatureCollection;
-    sitePolygon: ExtraFeatureCollection;
-    programPoint: FeatureCollection;
-    programLine: FeatureCollection;
-    programPolygon: FeatureCollection;
+    sites: ExtraFeatureCollection[];
     layerPoint: L.Layer;
     layerLine: L.Layer;
     layerPolygon: L.Layer;
     showLayerPoint: boolean;
     showLayerLine: boolean;
     showLayerPolygon: boolean;
-    showMapLarge: boolean;
-    dashboardMap: L.Map;
+    // nGraphs: number;
+    // currentGraph: number;
+    dashboardMaps: DashboardMaps[];
     options: any;
+
     constructor(
         private router: Router,
         private titleService: Title,
-        private programService: GncProgramsService
-    ) { }
+        private programService: GncProgramsService,
+        private http: HttpClient
+    ) {}
 
     ngAfterViewInit(): void {
-
         this.dashboardData = dashboardData;
-
+        this.dashboardMaps = [];
         this.titleService.setTitle(`${AppConfig.appName} - tableau de bord`);
 
+        // this.nGraphs = 5;
+        // this.currentGraph = 1;
+        const sites = [];
+
         this.programService.getAllPrograms().subscribe((programs) => {
-            this.programs = programs;
+            this.programs = programs.reverse();
+
             console.log('this.programs: ', this.programs);
 
-            const mapContainer = document.getElementById('dashboardMap');
+            for (const p of this.programs) {
+                this.programService
+                    .getProgramSites(p.id_program)
+                    .subscribe((site) => {
+                        const countImport = site.features.filter((f) =>
+                            this.isImported(f)
+                        ).length;
+                        console.log('site', site);
+                        if (site.features.length > 0) {
+                            setTimeout(
+                                () => this.addLayerToMap(site, p.id_program),
+                                5000
+                            );
 
-            if (mapContainer) {
-                this.initMap(conf);
-            }
+                            const formKey =
+                                site.features[0].properties.program.custom_form
+                                    .json_schema.schema.properties;
 
-            for (let p of this.programs) {
-                console.log('p', p)
-                this.programService.getProgram(p.id_program).subscribe((program) => {
-                    if (p.geometry_type === 'point' && p.id_project === 1) {
-                        this.programPoint = program;
-                        console.log('this.programPoint:', this.programPoint);
+                            const countByKey = {};
+                            for (const k in formKey) {
+                                if (formKey[k].type === 'string') {
+                                    countByKey[k] = this.countVisitsDataByKey(
+                                        k,
+                                        site
+                                    );
+                                }
+                            }
 
-                        if (this.programPoint) {
-                            this.addProgramLayer(this.programPoint);
-                        }
-
-                        this.programService.getProgramSites(p.id_program).subscribe((site) => {
-
-                            const countImport = site.features.filter(
-                                (f) => f.properties.obs_txt === 'import' || f.properties.obs_txt === 'géoportail wallon'
-                            ).length;
-
-                            this.sitePoint = site;
-                            Object.assign(this.sitePoint, {
+                            Object.assign(site, {
+                                title: p.title,
+                                programId: p.id_program,
+                                geometryType: p.geometry_type,
                                 countImport: countImport,
-                                especesTable: this.countVisitsDataByKey('espece', this.sitePoint)
+                                sumLineLength: this.computeTotalLength(site),
+                                sumArea: this.computeTotalArea(site),
+                                keys: Object.keys(formKey),
+                                formKey: formKey,
+                                countByKey: countByKey,
                             });
-                            console.log('this.sitePoint:', this.sitePoint);
+                            sites.push(site);
 
-                            this.addLayerToMap(this.sitePoint);
-                        });
-                    }
-
-                    if (p.geometry_type === 'linestring' && p.id_project === 1) {
-                        this.programLine = program;
-                        console.log('this.programLine:', this.programLine);
-
-                        this.programService.getProgramSites(p.id_program).subscribe((site) => {
-
-                            this.siteLine = site;
-                            Object.assign(this.siteLine, {
-                                countImport: this.countImport(this.siteLine),
-                                sumLineLength: this.computeTotalLength(this.siteLine),
-                                especesTable: this.countVisitsDataByKey('espece', this.siteLine)
-                            });
-
-                            console.log('this.siteLines:', this.siteLine);
-
-                            this.addLayerToMap(this.siteLine);
-                        });
-                    }
-
-                    if (p.geometry_type === 'polygon' && p.id_project === 1) {
-                        this.programPolygon = program;
-                        console.log('this.programZones:', this.programPolygon);
-
-                        this.programService.getProgramSites(p.id_program).subscribe((site) => {
-                            this.sitePolygon = site;
-                            console.log('this.sitePolygon:', this.sitePolygon);
-                            Object.assign(this.sitePolygon, {
-                                countImport: this.countImport(this.sitePolygon),
-                                sumArea: this.computeTotalArea(this.sitePolygon),
-                            });
-
-                            this.addLayerToMap(this.sitePolygon);
-                        });
-                    }
-                });
+                            for (const k in formKey) {
+                                if (formKey[k].type === 'integer') {
+                                    setTimeout(
+                                        () =>
+                                            this.makeHistogram(
+                                                `site${p.id_program}-graph-${k}`,
+                                                site,
+                                                k,
+                                                formKey[k].title
+                                            ),
+                                        100
+                                    );
+                                }
+                                if (formKey[k].type === 'string') {
+                                    setTimeout(
+                                        () =>
+                                            this.makePieChart(
+                                                `site${p.id_program}-graph-${k}`,
+                                                site,
+                                                k,
+                                                formKey[k].title
+                                            ),
+                                        100
+                                    );
+                                }
+                            }
+                        }
+                    });
             }
 
+            const sortedSites = sites.sort(
+                (a, b) => Number(a.programId) - Number(b.programId) // should work
+            );
+            this.sites = sortedSites;
+            console.log('this.sites', this.sites);
         });
     }
 
+    makePieChart(
+        graphId: string,
+        features: FeatureCollection,
+        key: string,
+        title: string
+    ): void {
+        const COLORS = [
+            '#001e50',
+            '#003366',
+            '#006699',
+            '#0099cd',
+            '#94ab84',
+            '#e4dfaf',
+            '#e6ca94',
+            '#cdab83',
+            '#b59880',
+            '#9b7b62',
+        ]; // from the columbia palette in QGIS
+
+        const data = [
+            {
+                values: this.countVisitsDataByKey(key, features).map(
+                    (e) => e.count
+                ),
+                labels: this.countVisitsDataByKey(key, features).map(
+                    (e) => e.name
+                ),
+                marker: {
+                    colors: COLORS,
+                },
+                type: 'pie',
+            },
+        ];
+
+        const layout = {
+            height: 350,
+            // width: 400,
+            title: { text: title },
+        };
+
+        Plotly.newPlot(graphId, data, layout);
+    }
+
+    makeHistogram(
+        graphId: string,
+        features: FeatureCollection,
+        key: string,
+        title: string
+    ): void {
+        const data = [
+            {
+                x: features.features.map((f) =>
+                    'merged_visits' in f.properties
+                        ? key in f.properties.merged_visits
+                            ? f.properties.merged_visits[key]
+                            : null
+                        : null
+                ),
+                type: 'histogram',
+                nbinsx: 10,
+                marker: {
+                    color: '#001e50',
+                },
+            },
+        ];
+
+        const layout = {
+            height: 350,
+            //width: 400,
+            title: { text: title },
+        };
+
+        Plotly.newPlot(graphId, data, layout);
+    }
+
+    isImported(f: Feature): boolean {
+        return (
+            f.properties.obs_txt === 'import' ||
+            f.properties.obs_txt === 'import osm' ||
+            f.properties.obs_txt === 'géoportail wallon'
+        );
+    }
 
     countImport(featureCollection: FeatureCollection): number {
-        return featureCollection.features.filter(
-            (f) => f.properties.obs_txt === 'import' || f.properties.obs_txt === 'géoportail wallon'
-        ).length;
+        return featureCollection.features.filter((f) => this.isImported(f))
+            .length;
     }
 
     computeArea(coordinates: Position[][]): number {
@@ -160,21 +256,30 @@ export class DashboardComponent implements AfterViewInit {
          */
 
         const ringArea = (coords): number => {
-            let p1, p2, p3, lowerIndex, middleIndex, upperIndex, i,
-            area = 0,
-            coordsLength = coords.length;
+            let p1,
+                p2,
+                p3,
+                lowerIndex,
+                middleIndex,
+                upperIndex,
+                i,
+                area = 0,
+                coordsLength = coords.length;
 
             if (coordsLength > 2) {
                 for (i = 0; i < coordsLength; i++) {
-                    if (i === coordsLength - 2) {// i = N-2
+                    if (i === coordsLength - 2) {
+                        // i = N-2
                         lowerIndex = coordsLength - 2;
                         middleIndex = coordsLength - 1;
                         upperIndex = 0;
-                    } else if (i === coordsLength - 1) {// i = N-1
+                    } else if (i === coordsLength - 1) {
+                        // i = N-1
                         lowerIndex = coordsLength - 1;
                         middleIndex = 0;
                         upperIndex = 1;
-                    } else { // i = 0 to N-3
+                    } else {
+                        // i = 0 to N-3
                         lowerIndex = i;
                         middleIndex = i + 1;
                         upperIndex = i + 2;
@@ -185,14 +290,14 @@ export class DashboardComponent implements AfterViewInit {
                     area += (rad(p3[0]) - rad(p1[0])) * Math.sin(rad(p2[1]));
                 }
 
-                area = area * RADIUS * RADIUS / 2;
+                area = (area * RADIUS * RADIUS) / 2;
             }
 
             return area;
         };
 
         const rad = (_): number => {
-            return _ * Math.PI / 180;
+            return (_ * Math.PI) / 180;
         };
 
         const polygonArea = (coords): number => {
@@ -214,7 +319,6 @@ export class DashboardComponent implements AfterViewInit {
      */
     computeTotalArea(featureCollection: FeatureCollection): number {
         let total = 0;
-        console.log(featureCollection.features);
 
         featureCollection.features.forEach((f) => {
             const geom = f.geometry as Polygon;
@@ -243,7 +347,8 @@ export class DashboardComponent implements AfterViewInit {
             if (lineString.coordinates.length > 2) {
                 for (let i = 1; i < lineString.coordinates.length; i++) {
                     length =
-                        length + this.distance(
+                        length +
+                        this.distance(
                             lineString.coordinates[i - 1][0],
                             lineString.coordinates[i - 1][1],
                             lineString.coordinates[i][0],
@@ -263,9 +368,9 @@ export class DashboardComponent implements AfterViewInit {
      */
     distance(λ1: number, φ1: number, λ2: number, φ2: number): number {
         const R = 6371000;
-        const Δλ = (λ2 - λ1) * Math.PI / 180;
-        φ1 = φ1 * Math.PI / 180;
-        φ2 = φ2 * Math.PI / 180;
+        const Δλ = ((λ2 - λ1) * Math.PI) / 180;
+        φ1 = (φ1 * Math.PI) / 180;
+        φ2 = (φ2 * Math.PI) / 180;
         const x = Δλ * Math.cos((φ1 + φ2) / 2);
         const y = φ2 - φ1;
         const d = Math.sqrt(x * x + y * y);
@@ -273,19 +378,19 @@ export class DashboardComponent implements AfterViewInit {
     }
 
     getVisitsDataByKey(key: string, program: FeatureCollection): any[] {
-        const visitsData: any[] = [];
-        program.features.forEach((f) => {
-            if (f.properties.hasOwnProperty('visits')) {
-                if (f.properties.visits[f.properties.visits.length - 1].json_data.hasOwnProperty(key)) {
-                    const data = f.properties.visits[f.properties.visits.length - 1].json_data[key];
-                    visitsData.push(data);
-                }
-            }
-        });
-        return visitsData;
-    } //TODO count in another function the number of especes and send back an object with [{name: 'truc', count: 2} , {name: 'troc', count: 3} ]
+        return program.features.map((f) =>
+            'merged_visits' in f.properties
+                ? key in f.properties.merged_visits
+                    ? f.properties.merged_visits[key]
+                    : 'pas de données'
+                : 'pas de données'
+        );
+    }
 
-    countVisitsDataByKey(key: string, program: FeatureCollection): CountByKey[] {
+    countVisitsDataByKey(
+        key: string,
+        program: FeatureCollection
+    ): CountByKey[] {
         const data = this.getVisitsDataByKey(key, program);
         const uniqueData = data.filter((v, i, a) => a.indexOf(v) === i);
         const results = [];
@@ -297,46 +402,54 @@ export class DashboardComponent implements AfterViewInit {
         });
 
         results.sort((a, b) => b.count - a.count);
-
         return results;
     }
 
-    initMap(options: any, LeafletOptions: any = {}): void {
-
+    initMap(options: any, programId: number, LeafletOptions: any = {}): void {
         this.options = options;
 
-        this.dashboardMap = L.map('dashboardMap', {
-            layers: [this.options.DEFAULT_BASE_MAP()],
-            ...LeafletOptions,
-        });
+        const dashboardMap = L.map(`dashboardMap-${programId}`)
 
-        this.dashboardMap.zoomControl.setPosition(
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(dashboardMap);
+
+        dashboardMap.zoomControl.setPosition(
             this.options.ZOOM_CONTROL_POSITION
         );
 
         L.control
             .scale({ position: this.options.SCALE_CONTROL_POSITION })
-            .addTo(this.dashboardMap);
+            .addTo(dashboardMap);
 
-        L.control
-            .layers(this.options.BASE_LAYERS, null, {
-                collapsed: this.options.BASE_LAYER_CONTROL_INIT_COLLAPSED,
-                position: this.options.BASE_LAYER_CONTROL_POSITION,
-            })
-            .addTo(this.dashboardMap);
+        this.http
+            .get(`${MainConfig.API_ENDPOINT}/programs/${programId}`)
+            .subscribe((result) => {
+                const programFeature = result as FeatureCollection;
+                this.addProgramLayer(programFeature, dashboardMap);
+            });
 
-        this.showMapLarge = false;
+        this.dashboardMaps.push({
+            id: programId,
+            lmap: dashboardMap,
+        });
     }
 
-    addProgramLayer(features: FeatureCollection): void {
+    addProgramLayer(features: FeatureCollection, lmap: L.Map): void {
         const programLayer = L.geoJSON(features, {
             style: (_feature) => this.options.PROGRAM_AREA_STYLE(_feature),
-        }).addTo(this.dashboardMap);
+        }).addTo(lmap);
         const programBounds = programLayer.getBounds();
-        this.dashboardMap.fitBounds(programBounds);
+        lmap.fitBounds(programBounds);
     }
 
-    addLayerToMap(features: FeatureCollection): void {
+    addLayerToMap(features: FeatureCollection, programId: number): void {
+
+        const mapContainer = document.getElementById(
+            `dashboardMap-${programId}`
+        );
+        this.initMap(conf, programId);
+
         const layerOptions = {
             onEachFeature: (feature, layer) => {
                 const popupContent = this.getPopupContent(feature);
@@ -344,52 +457,51 @@ export class DashboardComponent implements AfterViewInit {
             },
         };
 
-        const geometryType = features.features[0].geometry.type.toUpperCase();
+        const geometryType = features.features[0].geometry.type;
         switch (geometryType) {
-            case 'POINT':
+            case 'Point':
             default:
                 Object.assign(layerOptions, {
                     pointToLayer: (f: Feature, latlng): L.Marker => {
                         const marker: L.Marker<any> = L.marker(latlng, {
-                            icon:
-                                f.properties.obs_txt === 'import' || f.properties.obs_txt === 'géoportail wallon'
-                                    ? conf.ORANGE_MARKER_ICON()
-                                    : conf.OBS_MARKER_ICON(),
+                            icon: this.isImported(f)
+                                ? conf.ORANGE_MARKER_ICON()
+                                : conf.OBS_MARKER_ICON(),
                         });
                         return marker;
                     },
                 });
                 this.layerPoint = L.geoJSON(features, layerOptions);
-                this.dashboardMap.addLayer(this.layerPoint);
+                this.dashboardMaps.find(m => m.id === programId).lmap.addLayer(this.layerPoint);
                 this.showLayerPoint = true;
                 break;
 
-            case 'LINESTRING':
+            case 'LineString':
                 Object.assign(layerOptions, {
                     style: (f: Feature) =>
-                        f.properties.obs_txt === 'import' || f.properties.obs_txt === 'géoportail wallon'
+                        this.isImported(f)
                             ? { color: '#ff6600' }
-                            : { color: '#11aa9e' }
+                            : { color: '#11aa9e' },
                 });
                 this.layerLine = L.geoJSON(features, layerOptions);
-                this.dashboardMap.addLayer(this.layerLine);
+                this.dashboardMaps.find(m => m.id === programId).lmap.addLayer(this.layerLine);
                 this.showLayerLine = true;
                 break;
 
-            case 'POLYGON':
+            case 'Polygon':
                 Object.assign(layerOptions, {
                     style: (f: Feature) =>
-                        f.properties.obs_txt === 'import' || f.properties.obs_txt === 'géoportail wallon'
+                        this.isImported(f)
                             ? { color: '#ff6600' }
-                            : { color: '#11aa25' }
+                            : { color: '#11aa25' },
                 });
                 this.layerPolygon = L.geoJSON(features, layerOptions);
-                this.dashboardMap.addLayer(this.layerPolygon);
+                this.dashboardMaps.find(m => m.id === programId).lmap.addLayer(this.layerPolygon);
                 this.showLayerPolygon = true;
                 break;
         }
 
-        this.dashboardMap.setView(
+        this.dashboardMaps.find(m => m.id === programId).lmap.setView(
             [this.dashboardData.base.lat, this.dashboardData.base.lon],
             11
         );
@@ -410,45 +522,42 @@ export class DashboardComponent implements AfterViewInit {
     }
 
     togglePointLayer(): void {
-        if (this.showLayerPoint) {
-            this.dashboardMap.removeLayer(this.layerPoint);
-            this.showLayerPoint = false;
-        } else {
-            this.dashboardMap.addLayer(this.layerPoint);
-            this.showLayerPoint = true;
-        }
+        // if (this.showLayerPoint) {
+        //     this.dashboardMap.removeLayer(this.layerPoint);
+        //     this.showLayerPoint = false;
+        // } else {
+        //     this.dashboardMap.addLayer(this.layerPoint);
+        //     this.showLayerPoint = true;
+        // }
     }
 
     toggleLineLayer(): void {
-        if (this.showLayerLine) {
-            this.dashboardMap.removeLayer(this.layerLine);
-            this.showLayerLine = false;
-        } else {
-            this.dashboardMap.addLayer(this.layerLine);
-            this.showLayerLine = true;
-        }
+        // if (this.showLayerLine) {
+        //     this.dashboardMap.removeLayer(this.layerLine);
+        //     this.showLayerLine = false;
+        // } else {
+        //     this.dashboardMap.addLayer(this.layerLine);
+        //     this.showLayerLine = true;
+        // }
     }
 
     togglePolygonLayer(): void {
-        if (this.showLayerPolygon) {
-            this.dashboardMap.removeLayer(this.layerPolygon);
-            this.showLayerPolygon = false;
-        } else {
-            this.dashboardMap.addLayer(this.layerPolygon);
-            this.showLayerPolygon = true;
-        }
+        // if (this.showLayerPolygon) {
+        //     this.dashboardMap.removeLayer(this.layerPolygon);
+        //     this.showLayerPolygon = false;
+        // } else {
+        //     this.dashboardMap.addLayer(this.layerPolygon);
+        //     this.showLayerPolygon = true;
+        // }
     }
 
-    toggleMapLarge(): void {
-        setTimeout(() => {
-            this.dashboardMap.invalidateSize();
-        }, 400);
-        if (this.showMapLarge) {
-            this.showMapLarge = false;
-        } else {
-            this.showMapLarge = true;
-        }
-    }
+    // toggleGraph(): void {
+    //     if (this.currentGraph === this.nGraphs) {
+    //         this.currentGraph = 1;
+    //     } else {
+    //         this.currentGraph = this.currentGraph + 1;
+    //     }
+    // }
 
     print(): void {
         // open all the details html tag
@@ -457,10 +566,9 @@ export class DashboardComponent implements AfterViewInit {
             const d = detailsTags[i];
             d.setAttribute('open', 'true');
         }
-        this.showMapLarge = true;
-        setTimeout(() => {
-            this.dashboardMap.invalidateSize();
-        }, 400);
+        // setTimeout(() => {
+        //     this.dashboardMap.invalidateSize();
+        // }, 400);
         setTimeout(() => {
             window.print();
         }, 400);

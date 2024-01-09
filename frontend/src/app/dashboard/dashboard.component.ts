@@ -20,6 +20,7 @@ interface ExtraFeatureCollection extends FeatureCollection {
 interface CountByKey {
     name: string;
     count: number;
+    part: number;
 }
 
 interface DashboardMaps {
@@ -398,9 +399,11 @@ export class DashboardComponent implements AfterViewInit {
         const uniqueData = data.filter((v, i, a) => a.indexOf(v) === i);
         const results = [];
         uniqueData.forEach((d) => {
+            const c: number = data.filter((v) => v === d).length;
             results.push({
                 name: d,
-                count: data.filter((v) => v === d).length,
+                count: c,
+                part: Math.round(c / data.length * 100) / 100,
             });
         });
 

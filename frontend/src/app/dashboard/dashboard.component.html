@@ -31,7 +31,7 @@
                 (ngModelChange)="onProgramChange()"
                 >
                 <option *ngFor="let p of programs" [ngValue]="p">
-                    {{p.programId}}.{{ p.title }}
+                    {{ p.id_program }}. {{ p.title }}
                 </option>
             </select>
         </div>
@@ -75,6 +75,7 @@
                                                 <tr *ngFor="let v of p.countByKey[k]">
                                                     <td>{{ v.name }}</td>
                                                     <td>{{ v.count }}</td>
+                                                    <td>{{ v.part * 100 }} %</td>
                                                 </tr>
                                             </tbody>
                                         </table>

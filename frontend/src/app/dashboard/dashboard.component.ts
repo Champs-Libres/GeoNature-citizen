@@ -43,6 +43,8 @@ export class DashboardComponent implements AfterViewInit {
     showLayerLine: boolean;
     showLayerPolygon: boolean;
     dashboardMaps: DashboardMaps[];
+    selectedProgram: Program | null;
+    selectedProgramSites: ExtraFeatureCollection | null;
     options: any;
 
     constructor(
@@ -56,6 +58,9 @@ export class DashboardComponent implements AfterViewInit {
         this.dashboardData = dashboardData;
         this.dashboardMaps = [];
         this.titleService.setTitle(`${AppConfig.appName} - tableau de bord`);
+
+        this.selectedProgram = null;
+        this.selectedProgramSites = null;
 
         const programSites = [];
 
@@ -545,6 +550,14 @@ export class DashboardComponent implements AfterViewInit {
         //     this.dashboardMap.addLayer(this.layerPolygon);
         //     this.showLayerPolygon = true;
         // }
+    }
+
+    onProgramChange() {
+        console.log(this.selectedProgram);
+        this.selectedProgramSites = this.programSites.find(
+            (s) => s.programId === this.selectedProgram.id_program
+        );
+        console.log(this.selectedProgramSites);
     }
 
     print(): void {

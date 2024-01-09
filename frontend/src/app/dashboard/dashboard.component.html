@@ -22,6 +22,20 @@
             <p>Attention, les données présentées ici sont des données brutes, non vérifiées, qui peuvent mener à de mauvaises interprétations.</p>
         </div>
 
+        <div class="col-lg-12">
+            <p>Choix d'un programme</p>
+            <select
+                type="text"
+                class="form-control"
+                [(ngModel)]="selectedProgram"
+                (ngModelChange)="onProgramChange()"
+                >
+                <option *ngFor="let p of programs" [ngValue]="p">
+                    {{ p.title }}
+                </option>
+            </select>
+        </div>
+
         <div *ngFor="let p of programSites" class="row border-bottom">
             <div class="col-lg-12">
                 <div class="mt-5">

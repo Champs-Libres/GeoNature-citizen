@@ -66,6 +66,7 @@ export class DashboardComponent implements AfterViewInit {
 
         this.programService.getAllPrograms().subscribe((programs) => {
             this.programs = programs.reverse();
+            this.selectedProgram = programs[0]; //TODO try this to get a default value
 
             console.log('this.programs: ', this.programs);
 

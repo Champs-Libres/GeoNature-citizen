@@ -81,7 +81,7 @@ div.dashboard-toggle-graph {
     z-index: 10;
 }
 
-div.graph-hidden {
+div.program-hidden {
     visibility: hidden;
     height: 0;
 }

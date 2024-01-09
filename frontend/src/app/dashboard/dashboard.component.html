@@ -37,7 +37,7 @@
         </div>
 
         <div *ngFor="let p of programSites" class="row border-bottom">
-            <div class="col-lg-12">
+            <div class="col-lg-12" [ngClass]="p.programId === selectedProgram.id_program ? '' : 'program-hidden'">
                 <div class="mt-5">
                     <h3><a href="programs/{{p.programId}}/sites">#{{p.programId}} {{ p.title }}</a></h3>
                 </div>

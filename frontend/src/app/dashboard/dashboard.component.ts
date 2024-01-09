@@ -35,15 +35,13 @@ interface DashboardMaps {
 export class DashboardComponent implements AfterViewInit {
     dashboardData: dashboardDataType;
     programs: Program[];
-    sites: ExtraFeatureCollection[];
+    programSites: ExtraFeatureCollection[];
     layerPoint: L.Layer;
     layerLine: L.Layer;
     layerPolygon: L.Layer;
     showLayerPoint: boolean;
     showLayerLine: boolean;
     showLayerPolygon: boolean;
-    // nGraphs: number;
-    // currentGraph: number;
     dashboardMaps: DashboardMaps[];
     options: any;
 
@@ -52,16 +50,14 @@ export class DashboardComponent implements AfterViewInit {
         private titleService: Title,
         private programService: GncProgramsService,
         private http: HttpClient
-    ) {}
+    ) { }
 
     ngAfterViewInit(): void {
         this.dashboardData = dashboardData;
         this.dashboardMaps = [];
         this.titleService.setTitle(`${AppConfig.appName} - tableau de bord`);
 
-        // this.nGraphs = 5;
-        // this.currentGraph = 1;
-        const sites = [];
+        const programSites = [];
 
         this.programService.getAllPrograms().subscribe((programs) => {
             this.programs = programs.reverse();
@@ -107,7 +103,7 @@ export class DashboardComponent implements AfterViewInit {
                                 formKey: formKey,
                                 countByKey: countByKey,
                             });
-                            sites.push(site);
+                            programSites.push(site);
 
                             for (const k in formKey) {
                                 if (formKey[k].type === 'integer') {
@@ -139,11 +135,11 @@ export class DashboardComponent implements AfterViewInit {
                     });
             }
 
-            const sortedSites = sites.sort(
+            const sortedSites = programSites.sort(
                 (a, b) => Number(a.programId) - Number(b.programId) // should work
             );
-            this.sites = sortedSites;
-            console.log('this.sites', this.sites);
+            this.programSites = sortedSites;
+            console.log('this.programSites', this.programSites);
         });
     }
 
@@ -550,14 +546,6 @@ export class DashboardComponent implements AfterViewInit {
         //     this.showLayerPolygon = true;
         // }
     }
-
-    // toggleGraph(): void {
-    //     if (this.currentGraph === this.nGraphs) {
-    //         this.currentGraph = 1;
-    //     } else {
-    //         this.currentGraph = this.currentGraph + 1;
-    //     }
-    // }
 
     print(): void {
         // open all the details html tag

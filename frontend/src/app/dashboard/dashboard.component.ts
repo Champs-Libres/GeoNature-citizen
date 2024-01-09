@@ -219,6 +219,7 @@ export class DashboardComponent implements AfterViewInit {
             height: 350,
             //width: 400,
             title: { text: title },
+            yaxis: { title: { text: 'Nombre' } },
         };
 
         Plotly.newPlot(graphId, data, layout);

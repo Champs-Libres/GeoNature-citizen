@@ -66,7 +66,7 @@ export class DashboardComponent implements AfterViewInit {
 
         this.programService.getAllPrograms().subscribe((programs) => {
             this.programs = programs.reverse();
-            this.selectedProgram = programs[0]; //TODO try this to get a default value
+            this.selectedProgram = programs[0];
 
             console.log('this.programs: ', this.programs);
 
@@ -555,11 +555,9 @@ export class DashboardComponent implements AfterViewInit {
     }
 
     onProgramChange() {
-        console.log(this.selectedProgram);
         this.selectedProgramSites = this.programSites.find(
             (s) => s.programId === this.selectedProgram.id_program
         );
-        console.log(this.selectedProgramSites);
     }
 
     print(): void {

@@ -31,7 +31,7 @@
                 (ngModelChange)="onProgramChange()"
                 >
                 <option *ngFor="let p of programs" [ngValue]="p">
-                    {{ p.title }}
+                    {{p.programId}}.{{ p.title }}
                 </option>
             </select>
         </div>
@@ -39,12 +39,12 @@
         <div *ngFor="let p of programSites" class="row border-bottom">
             <div class="col-lg-12" [ngClass]="p.programId === selectedProgram.id_program ? '' : 'program-hidden'">
                 <div class="mt-5">
-                    <h3><a href="programs/{{p.programId}}/sites">#{{p.programId}} {{ p.title }}</a></h3>
+                    <h3><a href="programs/{{p.programId}}/sites">{{ p.title }}</a></h3>
                 </div>
 
                 <div class="row mb-5">
-                    <div class="col-lg-6 mt-3 dashboard-program-info">
 
+                    <div class="dashboard-program-info col-lg-12" >
                         <div class="font-weight-bold">{{ p.count }} sites répertoriés</div>
                         <div class="font-weight-bold">dont {{ p.countImport }} importés</div>
 
@@ -57,27 +57,34 @@
                         <div *ngIf="p.geometryType === 'polygone'">
                             <div class="">Surface cartographiée: {{ p.sumArea.toFixed(2) }} ha</div>
                         </div>
+                    </div>
 
-                        <div *ngFor="let k of p.keys">
-                            <div *ngIf="p.formKey[k].type === 'string'" id="countByKey-{{k}}" >
-                                <h4 class="mt-4">{{ p.formKey[k].title }}</h4>
-                                <table class="table table-striped">
-                                    <tbody>
-                                        <tr *ngFor="let v of p.countByKey[k]">
-                                            <td>{{ v.name }}</td>
-                                            <td>{{ v.count }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                    <div *ngFor="let k of p.keys" class="col-lg-12">
+                        <details>
+
+                            <summary class="mt-4">{{ p.formKey[k].title }}</summary>
+                            <div class="row mt-2">
+                                <div class="col-lg-6 dashboard-program-graph">
+                                    <div class="mb-3" id="site{{p.programId}}-graph-{{k}}"></div>
+                                </div>
+                                <div class="col-lg-6 dashboard-program-table">
+                                    <div *ngIf="p.formKey[k].type === 'string'" id="countByKey-{{k}}" >
+
+                                        <table class="table table-striped">
+                                            <tbody>
+                                                <tr *ngFor="let v of p.countByKey[k]">
+                                                    <td>{{ v.name }}</td>
+                                                    <td>{{ v.count }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+
+                        </details>
                     </div>
 
-                    <div class="col-lg-6 mt-5 dashboard-program-graph">
-                        <div *ngFor="let k of p.keys; index as i">
-                            <div class="mb-3" id="site{{p.programId}}-graph-{{k}}"></div>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="row mb-5 d-flex justify-content-center">

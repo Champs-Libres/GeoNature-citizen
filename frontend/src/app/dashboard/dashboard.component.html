@@ -23,20 +23,22 @@
         </div>
 
         <div class="col-lg-12">
-            <p>Choix d'un programme</p>
-            <select
-                type="text"
-                class="form-control"
-                [(ngModel)]="selectedProgram"
-                (ngModelChange)="onProgramChange()"
-                >
-                <option *ngFor="let p of programs" [ngValue]="p">
-                    {{ p.id_program }}. {{ p.title }}
-                </option>
-            </select>
+            <p>Choisissez un programme ci-dessous pour voir ses statistiques</p>
+            <div>
+                <select
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="selectedProgram"
+                    (ngModelChange)="onProgramChange()"
+                    >
+                    <option *ngFor="let p of programs" [ngValue]="p">
+                        {{ p.id_program }}. {{ p.title }}
+                    </option>
+                </select>
+            </div>
         </div>
 
-        <div *ngFor="let p of programSites" class="row border-bottom">
+        <div *ngFor="let p of programSites" class="row">
             <div class="col-lg-12" [ngClass]="p.programId === selectedProgram.id_program ? '' : 'program-hidden'">
                 <div class="mt-5">
                     <h3><a href="programs/{{p.programId}}/sites">{{ p.title }}</a></h3>
@@ -44,10 +46,14 @@
 
                 <div class="row mb-5">
 
-                    <div class="dashboard-program-info col-lg-12" >
+                    <div class="dashboard-program-info col-lg-12">
+                        <h4>Informations générales</h4>
+
+                        <div>{{ p.longDesc }}</div>
+
                         <div class="font-weight-bold">{{ p.count }} sites répertoriés, dont {{ p.countImport }} importés.</div>
 
-                        <div class="font-weight-bold">Observations du {{ p.firstVisitDate.toLocaleDateString() }} au {{ p.lastVisitDate.toLocaleDateString() }}</div>
+                        <div class="font-weight-bold"><i class="fa fa-calendar"></i>Observations du {{ p.firstVisitDate.toLocaleDateString() }} au {{ p.lastVisitDate.toLocaleDateString() }}</div>
 
                         <div *ngIf="p.geometryType === 'ligne'">
                             <div class="">Longueur cartographiée: {{ p.sumLineLength.toFixed(2) }} km</div>
@@ -60,36 +66,40 @@
                         </div>
                     </div>
 
-                    <div *ngFor="let k of p.keys" class="col-lg-12">
-                        <details *ngIf="p.formKey[k].formType !== 'textarea'">
+                    <div class="dashboard-program-table col-lg-12">
+                        <h4>Propriétés observées</h4>
+                        <div *ngFor="let k of p.keys" class="col-lg-12">
 
-                            <summary class="mt-4">{{ p.formKey[k].title }}</summary>
-                            <div class="row mt-2">
-                                <div class="col-lg-6 dashboard-program-graph">
-                                    <div class="mb-3" id="site{{p.programId}}-graph-{{k}}"></div>
-                                </div>
-                                <div class="col-lg-6 dashboard-program-table">
-                                    <div *ngIf="p.formKey[k].type === 'string'" id="countByKey-{{k}}" >
+                            <details *ngIf="p.formKey[k].formType !== 'textarea'">
 
-                                        <table class="table table-striped">
-                                            <tbody>
-                                                <tr *ngFor="let v of p.countByKey[k]">
-                                                    <td>{{ v.name }}</td>
-                                                    <td>{{ v.count }}</td>
-                                                    <td>{{ v.part * 100 }} %</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
+                                <summary class="mt-4">{{ p.formKey[k].title }}</summary>
+                                <div class="row mt-2">
+                                    <div class="col-lg-6 dashboard-program-graph">
+                                        <div class="mb-3" id="site{{p.programId}}-graph-{{k}}"></div>
+                                    </div>
+                                    <div class="col-lg-6 dashboard-program-table">
+                                        <div *ngIf="p.formKey[k].type === 'string'" id="countByKey-{{k}}" >
+
+                                            <table class="table table-striped">
+                                                <tbody>
+                                                    <tr *ngFor="let v of p.countByKey[k]">
+                                                        <td>{{ v.name }}</td>
+                                                        <td>{{ v.count }}</td>
+                                                        <td>{{ v.part * 100 }} %</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                        </details>
+                            </details>
+                        </div>
                     </div>
-
                 </div>
 
                 <div class="row mb-5 d-flex justify-content-center">
+                    <h4>Carte des observations</h4>
                     <div [ngClass]="col-lg-12" class="dashboard-map" >
                         <div class="col-lg-12 dashboard-map-container" id="dashboardMap-{{p.programId}}"></div>
                         <!-- <div class="dashboard-map-switch">

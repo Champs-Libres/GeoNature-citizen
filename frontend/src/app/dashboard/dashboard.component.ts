@@ -122,6 +122,7 @@ export class DashboardComponent implements AfterViewInit {
                                 title: p.title,
                                 programId: p.id_program,
                                 geometryType: p.geometry_type,
+                                longDesc: p.html_long_desc,
                                 countImport: countImport,
                                 sumLineLength: this.computeTotalLength(site),
                                 sumArea: this.computeTotalArea(site),

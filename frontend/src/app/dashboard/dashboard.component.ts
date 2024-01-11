@@ -53,7 +53,7 @@ export class DashboardComponent implements AfterViewInit {
         private titleService: Title,
         private programService: GncProgramsService,
         private http: HttpClient
-    ) { }
+    ) {}
 
     ngAfterViewInit(): void {
         this.dashboardData = dashboardData;
@@ -115,6 +115,9 @@ export class DashboardComponent implements AfterViewInit {
                                 });
                             }
 
+                            const firstVisitDate = this.getFirstVisitDate(site);
+                            const lastVisitDate = this.getLastVisitDate(site);
+
                             Object.assign(site, {
                                 title: p.title,
                                 programId: p.id_program,
@@ -125,6 +128,8 @@ export class DashboardComponent implements AfterViewInit {
                                 keys: Object.keys(formKey),
                                 formKey: formKey,
                                 countByKey: countByKey,
+                                firstVisitDate: firstVisitDate,
+                                lastVisitDate: lastVisitDate,
                             });
                             programSites.push(site);
 
@@ -141,7 +146,10 @@ export class DashboardComponent implements AfterViewInit {
                                         100
                                     );
                                 }
-                                if (formKey[k].type === 'string' && formKey[k].formType !== 'textarea') {
+                                if (
+                                    formKey[k].type === 'string' &&
+                                    formKey[k].formType !== 'textarea'
+                                ) {
                                     setTimeout(
                                         () =>
                                             this.makePieChart(
@@ -419,7 +427,7 @@ export class DashboardComponent implements AfterViewInit {
             results.push({
                 name: d,
                 count: c,
-                part: Math.round(c / data.length * 100) / 100,
+                part: Math.round((c / data.length) * 100) / 100,
             });
         });
 
@@ -427,13 +435,34 @@ export class DashboardComponent implements AfterViewInit {
         return results;
     }
 
+    getFirstVisitDate(f: FeatureCollection) {
+        return new Date(
+            Math.min(
+                ...f.features.map((f) =>
+                    new Date(f.properties.timestamp_create).getTime()
+                )
+            )
+        );
+    }
+
+    getLastVisitDate(f: FeatureCollection) {
+        return new Date(
+            Math.max(
+                ...f.features.map((f) =>
+                    new Date(f.properties.timestamp_create).getTime()
+                )
+            )
+        );
+    }
+
     initMap(options: any, programId: number, LeafletOptions: any = {}): void {
         this.options = options;
 
-        const dashboardMap = L.map(`dashboardMap-${programId}`)
+        const dashboardMap = L.map(`dashboardMap-${programId}`);
 
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution:
+                '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         }).addTo(dashboardMap);
 
         dashboardMap.zoomControl.setPosition(
@@ -466,7 +495,6 @@ export class DashboardComponent implements AfterViewInit {
     }
 
     addLayerToMap(features: FeatureCollection, programId: number): void {
-
         const mapContainer = document.getElementById(
             `dashboardMap-${programId}`
         );
@@ -494,7 +522,9 @@ export class DashboardComponent implements AfterViewInit {
                     },
                 });
                 this.layerPoint = L.geoJSON(features, layerOptions);
-                this.dashboardMaps.find(m => m.id === programId).lmap.addLayer(this.layerPoint);
+                this.dashboardMaps
+                    .find((m) => m.id === programId)
+                    .lmap.addLayer(this.layerPoint);
                 this.showLayerPoint = true;
                 break;
 
@@ -506,7 +536,9 @@ export class DashboardComponent implements AfterViewInit {
                             : { color: '#11aa9e' },
                 });
                 this.layerLine = L.geoJSON(features, layerOptions);
-                this.dashboardMaps.find(m => m.id === programId).lmap.addLayer(this.layerLine);
+                this.dashboardMaps
+                    .find((m) => m.id === programId)
+                    .lmap.addLayer(this.layerLine);
                 this.showLayerLine = true;
                 break;
 
@@ -518,15 +550,19 @@ export class DashboardComponent implements AfterViewInit {
                             : { color: '#11aa25' },
                 });
                 this.layerPolygon = L.geoJSON(features, layerOptions);
-                this.dashboardMaps.find(m => m.id === programId).lmap.addLayer(this.layerPolygon);
+                this.dashboardMaps
+                    .find((m) => m.id === programId)
+                    .lmap.addLayer(this.layerPolygon);
                 this.showLayerPolygon = true;
                 break;
         }
 
-        this.dashboardMaps.find(m => m.id === programId).lmap.setView(
-            [this.dashboardData.base.lat, this.dashboardData.base.lon],
-            11
-        );
+        this.dashboardMaps
+            .find((m) => m.id === programId)
+            .lmap.setView(
+                [this.dashboardData.base.lat, this.dashboardData.base.lon],
+                11
+            );
     }
 
     getPopupContent(feature: Feature): string {

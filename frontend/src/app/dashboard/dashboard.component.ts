@@ -89,6 +89,19 @@ export class DashboardComponent implements AfterViewInit {
                                 site.features[0].properties.program.custom_form
                                     .json_schema.schema.properties;
 
+                            const steps =
+                                site.features[0].properties.program.custom_form
+                                    .json_schema.steps;
+
+                            const formType = {};
+                            for (const s of steps) {
+                                for (const l of s.layout) {
+                                    const k = l.key;
+                                    const ft = l.type;
+                                    formType[k] = ft;
+                                }
+                            }
+
                             const countByKey = {};
                             for (const k in formKey) {
                                 if (formKey[k].type === 'string') {
@@ -97,6 +110,9 @@ export class DashboardComponent implements AfterViewInit {
                                         site
                                     );
                                 }
+                                Object.assign(formKey[k], {
+                                    formType: formType[k],
+                                });
                             }
 
                             Object.assign(site, {
@@ -125,7 +141,7 @@ export class DashboardComponent implements AfterViewInit {
                                         100
                                     );
                                 }
-                                if (formKey[k].type === 'string') {
+                                if (formKey[k].type === 'string' && formKey[k].formType !== 'textarea') {
                                     setTimeout(
                                         () =>
                                             this.makePieChart(

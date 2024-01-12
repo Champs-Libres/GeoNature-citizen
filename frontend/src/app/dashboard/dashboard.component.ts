@@ -467,7 +467,6 @@ export class DashboardComponent implements AfterViewInit {
     getStatVisitsDataByKey(key: string, program: FeatureCollection): StatByKey {
         const data = this.getVisitsDataByKey(key, program);
         const numericData = data.filter((d) => Number.isInteger(d));
-        console.log('data', key, numericData);
         return {
             mean: numericData.reduce((d, acc) => acc + d) / numericData.length,
             min: Math.min(...numericData),

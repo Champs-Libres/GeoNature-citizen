@@ -99,7 +99,7 @@
                                             <tbody>
                                                 <tr>
                                                     <td>Moyenne</td>
-                                                    <td>{{ p.statByKey[k].mean }}</td>
+                                                    <td>{{ p.statByKey[k].mean.toPrecision(3) }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td>Minimum</td>
@@ -111,7 +111,7 @@
                                                 </tr>
                                                 <tr>
                                                     <td>Médiane</td>
-                                                    <td>{{ p.statByKey[k].median }}</td>
+                                                    <td>{{ p.statByKey[k].median.toPrecision(3) }}</td>
                                                 </tr>
                                                 
                                             </tbody>

@@ -11,6 +11,11 @@ div.dashboard-selector {
     width: 28rem;
 }
 
+ul.dashboard-program-info-list {
+    list-style-type: unset;
+    line-height: 2rem;
+}
+
 table.dashboard-table {
     font-size: 0.9rem;
 }
@@ -87,4 +92,9 @@ div.program-hidden {
 
 h1, h2, h3, h4 {
     color: var(--primary);
+}
+
+h3 > a {
+    color: var(--primary);
+    font-size: 1.4rem;
 }

@@ -23,6 +23,13 @@ interface CountByKey {
     part: number;
 }
 
+interface StatByKey {
+    mean: number;
+    min: number;
+    max: number;
+    median: number;
+}
+
 interface DashboardMaps {
     id: number;
     lmap: L.Map;
@@ -103,6 +110,7 @@ export class DashboardComponent implements AfterViewInit {
                             }
 
                             const countByKey = {};
+                            const statByKey = {};
                             for (const k in formKey) {
                                 if (formKey[k].type === 'string') {
                                     countByKey[k] = this.countVisitsDataByKey(
@@ -110,6 +118,13 @@ export class DashboardComponent implements AfterViewInit {
                                         site
                                     );
                                 }
+                                if (formKey[k].type === 'integer') {
+                                    statByKey[k] = this.getStatVisitsDataByKey(
+                                        k,
+                                        site
+                                    );
+                                }
+
                                 Object.assign(formKey[k], {
                                     formType: formType[k],
                                 });
@@ -134,6 +149,7 @@ export class DashboardComponent implements AfterViewInit {
                                 keys: Object.keys(formKey),
                                 formKey: formKey,
                                 countByKey: countByKey,
+                                statByKey: statByKey,
                                 firstVisitDate: firstVisitDate,
                                 lastVisitDate: lastVisitDate,
                                 contributors: contributors,
@@ -216,7 +232,7 @@ export class DashboardComponent implements AfterViewInit {
         ];
 
         const layout = {
-            height: 400,
+            height: 480,
             // width: 400,
             title: { text: title },
         };
@@ -434,12 +450,30 @@ export class DashboardComponent implements AfterViewInit {
             results.push({
                 name: d,
                 count: c,
-                part: (Math.round((c / data.length) * 100) / 100).toFixed(),
+                part: Math.round((c / data.length) * 100) / 100,
             });
         });
 
         results.sort((a, b) => b.count - a.count);
         return results;
+    }
+
+    median(arr: number[]): number {
+        const mid = Math.floor(arr.length / 2);
+        const nums = [...arr].sort((a, b) => a - b);
+        return arr.length % 2 !== 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2;
+    }
+
+    getStatVisitsDataByKey(key: string, program: FeatureCollection): StatByKey {
+        const data = this.getVisitsDataByKey(key, program);
+        const numericData = data.filter((d) => Number.isInteger(d));
+        console.log('data', key, numericData);
+        return {
+            mean: numericData.reduce((d, acc) => acc + d) / numericData.length,
+            min: Math.min(...numericData),
+            max: Math.max(...numericData),
+            median: this.median(numericData),
+        };
     }
 
     getFirstVisitDate(f: FeatureCollection): Date {

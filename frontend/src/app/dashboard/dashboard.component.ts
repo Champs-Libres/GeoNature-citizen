@@ -115,14 +115,19 @@ export class DashboardComponent implements AfterViewInit {
                                 });
                             }
 
-                            const firstVisitDate = this.getFirstVisitDate(site);
-                            const lastVisitDate = this.getLastVisitDate(site);
+                            const firstVisitDate: Date =
+                                this.getFirstVisitDate(site);
+                            const lastVisitDate: Date =
+                                this.getLastVisitDate(site);
+
+                            const contributors: string[] =
+                                this.getContributors(site);
 
                             Object.assign(site, {
                                 title: p.title,
                                 programId: p.id_program,
                                 geometryType: p.geometry_type,
-                                longDesc: p.html_long_desc,
+                                description: p.short_desc,
                                 countImport: countImport,
                                 sumLineLength: this.computeTotalLength(site),
                                 sumArea: this.computeTotalArea(site),
@@ -131,6 +136,7 @@ export class DashboardComponent implements AfterViewInit {
                                 countByKey: countByKey,
                                 firstVisitDate: firstVisitDate,
                                 lastVisitDate: lastVisitDate,
+                                contributors: contributors,
                             });
                             programSites.push(site);
 
@@ -210,7 +216,7 @@ export class DashboardComponent implements AfterViewInit {
         ];
 
         const layout = {
-            height: 350,
+            height: 400,
             // width: 400,
             title: { text: title },
         };
@@ -234,7 +240,7 @@ export class DashboardComponent implements AfterViewInit {
                         : null
                 ),
                 type: 'histogram',
-                nbinsx: 10,
+                nbinsx: 16,
                 marker: {
                     color: '#001e50',
                 },
@@ -242,7 +248,7 @@ export class DashboardComponent implements AfterViewInit {
         ];
 
         const layout = {
-            height: 350,
+            height: 400,
             //width: 400,
             title: { text: title },
             yaxis: { title: { text: 'Nombre' } },
@@ -428,7 +434,7 @@ export class DashboardComponent implements AfterViewInit {
             results.push({
                 name: d,
                 count: c,
-                part: Math.round((c / data.length) * 100) / 100,
+                part: (Math.round((c / data.length) * 100) / 100).toFixed(),
             });
         });
 
@@ -436,7 +442,7 @@ export class DashboardComponent implements AfterViewInit {
         return results;
     }
 
-    getFirstVisitDate(f: FeatureCollection) {
+    getFirstVisitDate(f: FeatureCollection): Date {
         return new Date(
             Math.min(
                 ...f.features.map((f) =>
@@ -446,7 +452,7 @@ export class DashboardComponent implements AfterViewInit {
         );
     }
 
-    getLastVisitDate(f: FeatureCollection) {
+    getLastVisitDate(f: FeatureCollection): Date {
         return new Date(
             Math.max(
                 ...f.features.map((f) =>
@@ -454,6 +460,12 @@ export class DashboardComponent implements AfterViewInit {
                 )
             )
         );
+    }
+
+    getContributors(f: FeatureCollection): string[] {
+        return f.features
+            .map((f) => f.properties.obs_txt)
+            .filter((v, i, a) => a.indexOf(v) === i);
     }
 
     initMap(options: any, programId: number, LeafletOptions: any = {}): void {

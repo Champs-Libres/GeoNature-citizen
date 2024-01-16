@@ -76,7 +76,8 @@ div.print{
     header, 
     div.dashboard-print, 
     div.dashboard-program-select,
-    div.dashboard-title > a {
+    div.dashboard-title > a,
+    th {
         display: none!important;
     }
     div.dashboard-base > div {

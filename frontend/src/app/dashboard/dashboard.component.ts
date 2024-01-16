@@ -138,7 +138,7 @@ export class DashboardComponent implements AfterViewInit {
                             const lastVisitDate: Date =
                                 this.getLastVisitDate(site);
 
-                            const contributors: string[] =
+                            const contributors: CountByKey[] =
                                 this.getContributors(site);
 
                             Object.assign(site, {
@@ -507,10 +507,21 @@ export class DashboardComponent implements AfterViewInit {
         );
     }
 
-    getContributors(f: FeatureCollection): string[] {
-        return f.features
-            .map((f) => f.properties.obs_txt)
-            .filter((v, i, a) => a.indexOf(v) === i);
+    getContributors(f: FeatureCollection): CountByKey[] {
+        const contributors = f.features.map((f) => f.properties.obs_txt);
+        const uniqueContributors = contributors.filter(
+            (v, i, a) => a.indexOf(v) === i
+        );
+        const results = [];
+        uniqueContributors.forEach((d) => {
+            const c: number = contributors.filter((v) => v === d).length;
+            results.push({
+                name: d,
+                count: c,
+                part: Math.round((c / contributors.length) * 100) / 100,
+            });
+        });
+        return results;
     }
 
     initMap(options: any, programId: number, LeafletOptions: any = {}): void {

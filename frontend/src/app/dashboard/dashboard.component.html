@@ -58,7 +58,9 @@
                     <ul class="dashboard-program-info-list">
                         <li><i class="fa fa-info mr-2"></i>{{ p.count }} sites répertoriés, dont {{ p.countImport }} importés</li>
                         <li><i class="fa fa-calendar mr-2"></i>Observations du {{ p.firstVisitDate.toLocaleDateString() }} au {{ p.lastVisitDate.toLocaleDateString() }}</li>
-                        <li><i class="fa fa-user mr-2"></i>Liste des contributeurs: <i>{{ p.contributors.join(', ') }}</i></li>
+                        <li><i class="fa fa-user mr-2"></i>Contributeurs: <i>
+                            <span *ngFor="let c of p.contributors; last as isLast">{{ c.name }} {{(c.part * 100).toFixed() }}%<span *ngIf="!isLast">, </span></span>
+                        </i></li>
                     </ul>
 
                     <div *ngIf="p.geometryType === 'ligne'">
@@ -99,7 +101,7 @@
                                                 <tr *ngFor="let v of p.countByKey[k]">
                                                     <td>{{ v.name }}</td>
                                                     <td>{{ v.count }}</td>
-                                                    <td>{{ (v.part * 100).toFixed() }} %</td>
+                                                    <td>{{ (v.part * 100).toFixed() }}%</td>
                                                 </tr>
                                             </tbody>
                                         </table>

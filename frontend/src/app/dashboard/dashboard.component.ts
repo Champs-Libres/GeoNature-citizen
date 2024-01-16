@@ -112,7 +112,10 @@ export class DashboardComponent implements AfterViewInit {
                             const countByKey = {};
                             const statByKey = {};
                             for (const k in formKey) {
-                                if (formKey[k].type === 'string') {
+                                if (
+                                    formKey[k].type === 'string' ||
+                                    formKey[k].type === 'array'
+                                ) {
                                     countByKey[k] = this.countVisitsDataByKey(
                                         k,
                                         site
@@ -256,7 +259,7 @@ export class DashboardComponent implements AfterViewInit {
                         : null
                 ),
                 type: 'histogram',
-                nbinsx: 16,
+                nbinsx: 20,
                 marker: {
                     color: '#001e50',
                 },
@@ -438,6 +441,15 @@ export class DashboardComponent implements AfterViewInit {
         );
     }
 
+    abbreviate(text: string, n: number): string {
+        // unshamely copied from https://stackoverflow.com/questions/1199352/smart-way-to-truncate-long-strings
+        if (text.length <= n) {
+            return text;
+        }
+        const subString = text.slice(0, n - 1);
+        return subString.slice(0, subString.lastIndexOf(' ')) + '...';
+    }
+
     countVisitsDataByKey(
         key: string,
         program: FeatureCollection
@@ -448,7 +460,7 @@ export class DashboardComponent implements AfterViewInit {
         uniqueData.forEach((d) => {
             const c: number = data.filter((v) => v === d).length;
             results.push({
-                name: d,
+                name: this.abbreviate(d, 25),
                 count: c,
                 part: Math.round((c / data.length) * 100) / 100,
             });
@@ -468,7 +480,7 @@ export class DashboardComponent implements AfterViewInit {
         const data = this.getVisitsDataByKey(key, program);
         const numericData = data.filter((d) => Number.isInteger(d));
         return {
-            mean: numericData.reduce((d, acc) => acc + d) / numericData.length,
+            mean: numericData.reduce((d, acc) => acc + d, 0) / numericData.length,
             min: Math.min(...numericData),
             max: Math.max(...numericData),
             median: this.median(numericData),

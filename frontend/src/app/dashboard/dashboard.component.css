@@ -16,6 +16,12 @@ ul.dashboard-program-info-list {
     line-height: 2rem;
 }
 
+div.dashboard-program-table {
+    overflow: auto;
+    height: 480px;
+    scrollbar-color: rgb(128, 139, 164);
+}
+
 table.dashboard-table {
     font-size: 0.9rem;
 }

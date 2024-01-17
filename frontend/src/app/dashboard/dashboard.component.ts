@@ -521,7 +521,7 @@ export class DashboardComponent implements AfterViewInit {
                 part: Math.round((c / contributors.length) * 100) / 100,
             });
         });
-        return results;
+        return results.sort((a, b) => b.count - a.count);
     }
 
     initMap(options: any, programId: number, LeafletOptions: any = {}): void {

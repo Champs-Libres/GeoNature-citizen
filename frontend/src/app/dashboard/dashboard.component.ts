@@ -112,13 +112,17 @@ export class DashboardComponent implements AfterViewInit {
                             const countByKey = {};
                             const statByKey = {};
                             for (const k in formKey) {
-                                if (
-                                    formKey[k].type === 'string' ||
-                                    formKey[k].type === 'array'
-                                ) {
+                                if (formKey[k].type === 'string') {
                                     countByKey[k] = this.countVisitsDataByKey(
                                         k,
                                         site
+                                    );
+                                }
+                                if (formKey[k].type === 'array') {
+                                    countByKey[k] = this.countVisitsDataByKey(
+                                        k,
+                                        site,
+                                        true
                                     );
                                 }
                                 if (formKey[k].type === 'integer') {
@@ -173,7 +177,8 @@ export class DashboardComponent implements AfterViewInit {
                                     );
                                 }
                                 if (
-                                    formKey[k].type === 'string' &&
+                                    (formKey[k].type === 'string' ||
+                                        formKey[k].type === 'array') &&
                                     formKey[k].formType !== 'textarea'
                                 ) {
                                     setTimeout(
@@ -221,10 +226,10 @@ export class DashboardComponent implements AfterViewInit {
 
         const data = [
             {
-                values: this.countVisitsDataByKey(key, features).map(
+                values: this.countVisitsDataByKey(key, features, true).map(
                     (e) => e.count
                 ),
-                labels: this.countVisitsDataByKey(key, features).map(
+                labels: this.countVisitsDataByKey(key, features, true).map(
                     (e) => e.name
                 ),
                 marker: {
@@ -452,9 +457,13 @@ export class DashboardComponent implements AfterViewInit {
 
     countVisitsDataByKey(
         key: string,
-        program: FeatureCollection
+        program: FeatureCollection,
+        isVisitDataArray = false
     ): CountByKey[] {
-        const data = this.getVisitsDataByKey(key, program);
+        let data = this.getVisitsDataByKey(key, program);
+        if (isVisitDataArray) {
+            data = data.reduce((acc, val) => acc.concat(val), []);
+        }
         const uniqueData = data.filter((v, i, a) => a.indexOf(v) === i);
         const results = [];
         uniqueData.forEach((d) => {

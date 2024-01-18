@@ -26,6 +26,10 @@ table.dashboard-table {
     font-size: 0.9rem;
 }
 
+div.dashboard-map{
+    min-height: 720px;
+}
+
 div.dashboard-map-container {
     height: 100%;
     min-height: 500px;
@@ -43,7 +47,7 @@ p.dashboard-popup {
 
 div.dashboard-map-legend {
     position: absolute;
-    bottom: 66px;
+    bottom: 240px;
     right: 90px;
     font-size: 0.9em;
     z-index: 500;
@@ -54,7 +58,7 @@ div.dashboard-map-legend {
 }
 @media screen and (max-width: 1200px) {
     div.dashboard-map-legend {
-        bottom: 28px;
+        bottom: 228px;
         right: 28px;
     }
 }
@@ -102,6 +106,9 @@ div.print{
     }
     div.print{
         display: flex;
+    }
+    div.no-print{
+        display: none!important;
     }
     .pagebreak { page-break-before: always; }
 }

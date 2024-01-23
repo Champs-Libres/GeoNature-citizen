@@ -54,6 +54,7 @@
                     <div class="mb-3"><i>{{ p.description }}</i></div>
 
                     <ul class="dashboard-program-info-list">
+                        <li *ngIf="p.geometryDescription"><i class="fa fa-map mr-2"></i>{{ p.geometryDescription }}</li>
                         <li><i class="fa fa-info mr-2"></i>{{ p.count }} sites répertoriés, dont {{ p.countImport }} importés</li>
                         <li><i class="fa fa-calendar mr-2"></i>Observations du {{ p.firstVisitDate.toLocaleDateString() }} au {{ p.lastVisitDate.toLocaleDateString() }}</li>
                         <li><i class="fa fa-user mr-2"></i>Contributeurs: <i>

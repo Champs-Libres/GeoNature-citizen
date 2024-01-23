@@ -100,6 +100,10 @@ export class DashboardComponent implements AfterViewInit {
                                 site.features[0].properties.program.custom_form
                                     .json_schema.steps;
 
+                            const geometryDescription =
+                                site.features[0].properties.program.geometry
+                                    .description;
+
                             const formType = {};
                             for (const s of steps) {
                                 for (const l of s.layout) {
@@ -160,6 +164,7 @@ export class DashboardComponent implements AfterViewInit {
                                 firstVisitDate: firstVisitDate,
                                 lastVisitDate: lastVisitDate,
                                 contributors: contributors,
+                                geometryDescription: geometryDescription,
                             });
                             programSites.push(site);
 
